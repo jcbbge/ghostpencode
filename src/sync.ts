@@ -76,6 +76,10 @@ export function syncFromOpenCode(themeName?: string): void {
   console.log(`\n✨ Synced "${theme}" from OpenCode → Ghostty!`);
 }
 
+function normalizeThemeName(name: string): string {
+  return name.toLowerCase().replace(/[\s-_]+/g, '');
+}
+
 export function detectCurrentThemes(): void {
   const ghosttyTheme = getCurrentGhosttyTheme();
   const opencodeTheme = getCurrentOpenCodeTheme();
@@ -84,9 +88,14 @@ export function detectCurrentThemes(): void {
   console.log(`  Ghostty:  ${ghosttyTheme || '(none)'}`);
   console.log(`  OpenCode: ${opencodeTheme || '(none)'}`);
 
-  if (ghosttyTheme && opencodeTheme && ghosttyTheme === opencodeTheme) {
-    console.log(`\n✓ Themes are in sync!`);
-  } else if (ghosttyTheme && opencodeTheme) {
-    console.log(`\n⚠ Themes differ. Run sync to align them.`);
+  if (ghosttyTheme && opencodeTheme) {
+    const normalized1 = normalizeThemeName(ghosttyTheme);
+    const normalized2 = normalizeThemeName(opencodeTheme);
+    
+    if (normalized1 === normalized2) {
+      console.log(`\n✓ Themes are in sync!`);
+    } else {
+      console.log(`\n⚠ Themes differ. Run sync to align them.`);
+    }
   }
 }

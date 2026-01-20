@@ -2,7 +2,10 @@ import sharp from 'sharp';
 import type { Palette } from './types';
 
 function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  const clamp = (val: number) => Math.max(0, Math.min(255, Math.round(val)));
+  return '#' + [clamp(r), clamp(g), clamp(b)]
+    .map(x => x.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 function getLuminance(r: number, g: number, b: number): number {

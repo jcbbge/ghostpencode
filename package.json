@@ -7,7 +7,12 @@
     "ghostpencode": "./src/cli.ts"
   },
   "scripts": {
-    "postinstall": "bun run src/install-skill.ts"
+    "postinstall": "bun run src/install-skill.ts",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "keywords": ["ghostty", "opencode", "theme", "terminal", "colors", "palette"],
   "author": "jcbbge",
@@ -17,7 +22,7 @@
     "url": "https://github.com/jcbbge/ghostpencode.git"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.3.6"
   },
   "peerDependencies": {
     "typescript": "^5"
