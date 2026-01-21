@@ -8,7 +8,10 @@ const GHOSTTY_CONFIG_PATHS = [
   join(homedir(), '.config/ghostty/config'),
 ];
 
-const GHOSTTY_THEMES_DIR = join('/Applications/Ghostty.app/Contents/Resources/ghostty/themes');
+const GHOSTTY_THEMES_DIRS = [
+  join(homedir(), '.config/ghostty/themes'), // User themes (priority)
+  join('/Applications/Ghostty.app/Contents/Resources/ghostty/themes'), // Built-in themes
+];
 
 function getGhosttyConfigPath(): string | null {
   for (const path of GHOSTTY_CONFIG_PATHS) {
@@ -27,8 +30,17 @@ export function getCurrentGhosttyTheme(): string | null {
 }
 
 export function readGhosttyTheme(themeName: string): Palette | null {
-  const themePath = join(GHOSTTY_THEMES_DIR, themeName);
-  if (!existsSync(themePath)) return null;
+  // Check user themes first, then built-in themes
+  let themePath: string | null = null;
+  for (const dir of GHOSTTY_THEMES_DIRS) {
+    const path = join(dir, themeName);
+    if (existsSync(path)) {
+      themePath = path;
+      break;
+    }
+  }
+  
+  if (!themePath) return null;
 
   const content = readFileSync(themePath, 'utf-8');
   const lines = content.split('\n');
@@ -40,7 +52,12 @@ export function readGhosttyTheme(themeName: string): Palette | null {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
 
-    const [key, value] = trimmed.split('=').map(s => s.trim());
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex < 0) continue;
+    
+    const key = trimmed.substring(0, eqIndex).trim();
+    const value = trimmed.substring(eqIndex + 1).trim();
+    
     if (!key || !value) continue;
 
     if (key === 'background') palette.background = value;
@@ -48,8 +65,12 @@ export function readGhosttyTheme(themeName: string): Palette | null {
     else if (key === 'cursor-color') palette.cursor = value;
     else if (key === 'selection-background') palette.selection = value;
     else if (key.startsWith('palette')) {
-      const num = parseInt(key.split('=')[0].match(/\d+/)?.[0] || '0');
-      paletteMap[num] = value;
+      // Extract palette number from "palette = 0=..."
+      const paletteMatch = value.match(/^(\d+)=(.+)$/);
+      if (paletteMatch) {
+        const num = parseInt(paletteMatch[1]);
+        paletteMap[num] = paletteMatch[2];
+      }
     }
   }
 

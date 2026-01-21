@@ -2,48 +2,60 @@
 
 import { basename } from 'path';
 import { extractFromImage, syncFromGhostty, syncFromOpenCode, detectCurrentThemes } from './sync';
+import { startWatching } from './watch';
 
 const args = process.argv.slice(2);
 
 function showHelp() {
   console.log(`
-ghostpencode - Bi-directional theme sync for Ghostty & OpenCode
+ghostpencode - Theme sync for Ghostty & OpenCode
 
 Usage:
-  ghostpencode extract <image> [--name <theme-name>]
-  ghostpencode sync --from <ghostty|opencode> [--theme <name>]
-  ghostpencode detect
+  ghostpencode                                      Check sync status
+  ghostpencode sync --from <ghostty|opencode>       Manual sync
+  ghostpencode detect                               Show current themes
+  ghostpencode extract <image> [--name <name>]      Extract from image
+  ghostpencode help                                 Show this help
 
 Commands:
+  (no args)                 Check if themes are synced, prompt to sync if needed
+  
+  sync --from <source>      Manual sync (non-interactive)
+    --from ghostty          Sync Ghostty → OpenCode
+    --from opencode         Sync OpenCode → Ghostty
+    --theme <name>          Specific theme (default: current active)
+
+  detect                    Show current active themes
+  
   extract <image>           Extract palette from image and create themes
     --name <name>           Custom theme name (default: image filename)
 
-  sync --from <source>      Sync themes between Ghostty and OpenCode
-    --from ghostty          Sync Ghostty → OpenCode
-    --from opencode         Sync OpenCode → Ghostty
-    --theme <name>          Specific theme name (default: current active)
-
-  detect                    Show current active themes
-
 Examples:
-  ghostpencode extract sunset.png
-  ghostpencode extract moody.jpg --name dark-ocean
-  ghostpencode sync --from ghostty
-  ghostpencode sync --from opencode --theme nord
-  ghostpencode detect
+  ghostpencode                              # Check status & sync
+  ghostpencode sync --from ghostty          # Sync Ghostty → OpenCode
+  ghostpencode sync --from opencode         # Sync OpenCode → Ghostty
+  ghostpencode extract sunset.png           # Extract from image
 `);
 }
 
 async function main() {
-  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
+  if (args[0] === '--help' || args[0] === '-h' || args[0] === '?') {
     showHelp();
     process.exit(0);
+  }
+
+  // Default: start watching if no args
+  if (args.length === 0) {
+    await startWatching();
+    return;
   }
 
   const command = args[0];
 
   try {
-    if (command === 'extract') {
+    if (command === 'help') {
+      showHelp();
+    } else if (command === 'extract') {
       const imagePath = args[1];
       if (!imagePath) {
         console.error('Error: Image path required');

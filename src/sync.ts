@@ -32,26 +32,28 @@ export async function extractFromImage(
   console.log(`\n✨ Theme "${themeName}" created and activated!`);
 }
 
-export function syncFromGhostty(themeName?: string): void {
+export function syncFromGhostty(themeName?: string, quiet = false): void {
   const theme = themeName || getCurrentGhosttyTheme();
   
   if (!theme) {
     throw new Error('No Ghostty theme specified or active');
   }
 
-  console.log(`Reading Ghostty theme: ${theme}`);
+  if (!quiet) console.log(`Reading Ghostty theme: ${theme}`);
   const palette = readGhosttyTheme(theme);
 
   if (!palette) {
     throw new Error(`Could not read Ghostty theme: ${theme}`);
   }
 
-  console.log(`Syncing to OpenCode...`);
+  if (!quiet) console.log(`Syncing to OpenCode...`);
   const opencodePath = writeOpenCodeTheme(theme, palette);
   writeOpenCodeConfig(theme);
   
-  console.log(`✓ OpenCode theme written to ${opencodePath}`);
-  console.log(`\n✨ Synced "${theme}" from Ghostty → OpenCode!`);
+  if (!quiet) {
+    console.log(`✓ OpenCode theme written to ${opencodePath}`);
+    console.log(`\n✨ Synced "${theme}" from Ghostty → OpenCode!`);
+  }
 }
 
 export function syncFromOpenCode(themeName?: string): void {
