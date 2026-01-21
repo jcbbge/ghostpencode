@@ -90,11 +90,34 @@ export async function detectCurrentThemes(): Promise<void> {
   const isMatch = ghosttyTheme !== '(none)' && opencodeTheme !== '(none)'
     && normalizeThemeName(ghosttyTheme) === normalizeThemeName(opencodeTheme);
 
-  // ANSI Colors: Bold Green [✔] or Bold Red [✘]
-  const matchIcon = isMatch ? "\x1b[1;32m[✔]\x1b[0m" : "\x1b[1;31m[✘]\x1b[0m";
+  // Match icon without colors
+  const matchIcon = isMatch ? "[✔]" : "[✘]";
 
-  // Final Layout (without icon in the decoded text)
-  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} `;
+  // Get color palette from Ghostty theme
+  let colors: string[] = [];
+  let finalColor: string | undefined;
+  if (ghosttyTheme !== '(none)') {
+    const palette = readGhosttyTheme(ghosttyTheme);
+    if (palette) {
+      // Use all the vibrant colors for animation
+      colors = [
+        palette.cyan,
+        palette.brightCyan,
+        palette.blue,
+        palette.brightBlue,
+        palette.magenta,
+        palette.brightMagenta,
+        palette.green,
+        palette.brightGreen,
+      ];
+      // Use foreground color for final text (matches terminal text)
+      finalColor = palette.foreground;
+    }
+  }
 
-  await hackerDecode(finalStr, matchIcon, 45);
+  // Final Layout
+  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} ${matchIcon}`;
+
+  await hackerDecode(finalStr, '', colors, finalColor, 25);
+  console.log(); // newline after
 }
