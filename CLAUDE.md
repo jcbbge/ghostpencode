@@ -104,3 +104,55 @@ bun --hot ./index.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
+## Theme Locations Reference
+
+### OpenCode Themes
+
+**Default/Built-in Themes (30 themes):**
+Built into the OpenCode binary at `/opt/homebrew/lib/node_modules/opencode-ai/node_modules/opencode-darwin-arm64/bin/opencode`
+
+List of built-in themes:
+- aura, ayu, catppuccin, catppuccin-frappe, catppuccin-macchiato, cobalt2, cursor, dracula, everforest, flexoki, github, gruvbox, kanagawa, lucent-orng, material, matrix, mercury, monokai, nightowl, nord, one-dark, opencode, orng, osaka-jade, palenight, rosepine, solarized, synthwave84, tokyonight, vercel
+
+**User Custom Themes:**
+- Location: `~/.config/opencode/themes/`
+- Format: JSON files following schema at `https://opencode.ai/theme.json`
+- Active theme set in: `~/.config/opencode/opencode.json`
+
+**Accessing themes:**
+- In OpenCode CLI: Use keybind `<leader>t` (default: `ctrl+x` then `t`)
+- Lists all available themes with preview
+
+### Ghostty Themes
+
+**Default/Built-in Themes (442 themes):**
+Built into Ghostty application. View full list with:
+```bash
+ghostty +list-themes
+```
+
+Notable themes include: Nord, Dracula, Gruvbox, Catppuccin variants, TokyoNight, Solarized, Monokai, and 435+ others.
+
+**User Custom Themes:**
+- Location: `~/.config/ghostty/themes/`
+- Format: Ghostty theme files
+- Active theme set in: `~/.config/ghostty/config`
+
+### Theme Syncing
+
+The `ghostpencode` tool provides theme synchronization between OpenCode and Ghostty:
+
+```bash
+# Show current themes
+ghostpencode detect
+
+# Sync from Ghostty to OpenCode
+ghostpencode sync --from ghostty
+
+# Sync from OpenCode to Ghostty
+ghostpencode sync --from opencode
+
+# Extract theme from image
+ghostpencode extract <image-path>
+```
