@@ -93,8 +93,8 @@ export async function detectCurrentThemes(): Promise<void> {
   // ANSI Colors: Bold Green [✔] or Bold Red [✘]
   const matchIcon = isMatch ? "\x1b[1;32m[✔]\x1b[0m" : "\x1b[1;31m[✘]\x1b[0m";
 
-  // Final Layout
-  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} ${matchIcon}`;
+  // Final Layout (without icon in the decoded text)
+  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} `;
 
-  await hackerDecode(finalStr);
+  await hackerDecode(finalStr, matchIcon);
 }
