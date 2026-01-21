@@ -12,6 +12,7 @@ import {
   writeOpenCodeTheme,
 } from './opencode';
 import { hackerDecode } from './hacker-decode';
+import { toKebabCase, toTitleCase } from './utils';
 
 export async function extractFromImage(
   imagePath: string,
@@ -20,63 +21,79 @@ export async function extractFromImage(
   console.log(`Extracting palette from ${imagePath}...`);
   const palette = await extractPaletteFromImage(imagePath);
 
-  console.log(`Creating Ghostty theme: ${themeName}`);
-  const ghosttyPath = writeGhosttyTheme(themeName, palette);
-  writeGhosttyConfig(themeName, palette);
+  // Convert theme name to appropriate format for each platform
+  const ghosttyName = toTitleCase(themeName);
+  const opencodeName = toKebabCase(themeName);
+
+  console.log(`Creating Ghostty theme: ${ghosttyName}`);
+  const ghosttyPath = writeGhosttyTheme(ghosttyName, palette);
+  writeGhosttyConfig(ghosttyName, palette);
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
 
-  console.log(`Creating OpenCode theme: ${themeName}`);
-  const opencodePath = writeOpenCodeTheme(themeName, palette);
-  writeOpenCodeConfig(themeName);
+  console.log(`Creating OpenCode theme: ${opencodeName}`);
+  const opencodePath = writeOpenCodeTheme(opencodeName, palette);
+  writeOpenCodeConfig(opencodeName);
   console.log(`✓ OpenCode theme written to ${opencodePath}`);
 
-  console.log(`\n✨ Theme "${themeName}" created and activated!`);
+  console.log(`\n✨ Theme created and activated!`);
+  console.log(`  Ghostty: "${ghosttyName}"`);
+  console.log(`  OpenCode: "${opencodeName}"`);
 }
 
 export function syncFromGhostty(themeName?: string, quiet = false): void {
-  const theme = themeName || getCurrentGhosttyTheme();
-  
-  if (!theme) {
+  const ghosttyTheme = themeName || getCurrentGhosttyTheme();
+
+  if (!ghosttyTheme) {
     throw new Error('No Ghostty theme specified or active');
   }
 
-  if (!quiet) console.log(`Reading Ghostty theme: ${theme}`);
-  const palette = readGhosttyTheme(theme);
+  if (!quiet) console.log(`Reading Ghostty theme: ${ghosttyTheme}`);
+  const palette = readGhosttyTheme(ghosttyTheme);
 
   if (!palette) {
-    throw new Error(`Could not read Ghostty theme: ${theme}`);
+    throw new Error(`Could not read Ghostty theme: ${ghosttyTheme}`);
   }
 
+  // Convert Ghostty theme name (Title Case) to OpenCode format (kebab-case)
+  const opencodeTheme = toKebabCase(ghosttyTheme);
+
   if (!quiet) console.log(`Syncing to OpenCode...`);
-  const opencodePath = writeOpenCodeTheme(theme, palette);
-  writeOpenCodeConfig(theme);
-  
+  const opencodePath = writeOpenCodeTheme(opencodeTheme, palette);
+  writeOpenCodeConfig(opencodeTheme);
+
   if (!quiet) {
     console.log(`✓ OpenCode theme written to ${opencodePath}`);
-    console.log(`\n✨ Synced "${theme}" from Ghostty → OpenCode!`);
+    console.log(`\n✨ Synced from Ghostty → OpenCode!`);
+    console.log(`  Ghostty: "${ghosttyTheme}"`);
+    console.log(`  OpenCode: "${opencodeTheme}"`);
   }
 }
 
 export function syncFromOpenCode(themeName?: string): void {
-  const theme = themeName || getCurrentOpenCodeTheme();
-  
-  if (!theme) {
+  const opencodeTheme = themeName || getCurrentOpenCodeTheme();
+
+  if (!opencodeTheme) {
     throw new Error('No OpenCode theme specified or active');
   }
 
-  console.log(`Reading OpenCode theme: ${theme}`);
-  const palette = readOpenCodeTheme(theme);
+  console.log(`Reading OpenCode theme: ${opencodeTheme}`);
+  const palette = readOpenCodeTheme(opencodeTheme);
 
   if (!palette) {
-    throw new Error(`Could not read OpenCode theme: ${theme}`);
+    throw new Error(`Could not read OpenCode theme: ${opencodeTheme}`);
   }
 
+  // Convert OpenCode theme name (kebab-case) to Ghostty format (Title Case)
+  const ghosttyTheme = toTitleCase(opencodeTheme);
+
   console.log(`Syncing to Ghostty...`);
-  const ghosttyPath = writeGhosttyTheme(theme, palette);
-  writeGhosttyConfig(theme, palette);
-  
+  const ghosttyPath = writeGhosttyTheme(ghosttyTheme, palette);
+  writeGhosttyConfig(ghosttyTheme, palette);
+
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
-  console.log(`\n✨ Synced "${theme}" from OpenCode → Ghostty!`);
+  console.log(`\n✨ Synced from OpenCode → Ghostty!`);
+  console.log(`  OpenCode: "${opencodeTheme}"`);
+  console.log(`  Ghostty: "${ghosttyTheme}"`);
 }
 
 function normalizeThemeName(name: string): string {
