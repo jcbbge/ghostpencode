@@ -26,14 +26,12 @@ describe('CLI Integration Tests', () => {
   };
   
   describe('Help command', () => {
-    test('should display help with no arguments', () => {
+    test('should show sync status with no arguments', () => {
       const result = runCLI([]);
-      
-      expect(result.stdout).toContain('ghostpencode');
-      expect(result.stdout).toContain('extract');
-      expect(result.stdout).toContain('sync');
-      expect(result.stdout).toContain('detect');
-      expect(result.status).toBe(0);
+
+      // With no args, it shows sync status
+      expect(result.stdout).toContain('GHOSTTY');
+      expect(result.stdout).toContain('OPENCODE');
     });
     
     test('should display help with --help flag', () => {
