@@ -11,6 +11,7 @@ import {
   writeOpenCodeConfig,
   writeOpenCodeTheme,
 } from './opencode';
+import { hackerDecode } from './hacker-decode';
 
 export async function extractFromImage(
   imagePath: string,
@@ -82,22 +83,41 @@ function normalizeThemeName(name: string): string {
   return name.toLowerCase().replace(/[\s-_]+/g, '');
 }
 
-export function detectCurrentThemes(): void {
-  const ghosttyTheme = getCurrentGhosttyTheme();
-  const opencodeTheme = getCurrentOpenCodeTheme();
+export async function detectCurrentThemes(): Promise<void> {
+  const ghosttyTheme = getCurrentGhosttyTheme() || '(none)';
+  const opencodeTheme = getCurrentOpenCodeTheme() || '(none)';
 
-  console.log('Current themes:');
-  console.log(`  Ghostty:  ${ghosttyTheme || '(none)'}`);
-  console.log(`  OpenCode: ${opencodeTheme || '(none)'}`);
+  const isMatch = ghosttyTheme !== '(none)' && opencodeTheme !== '(none)'
+    && normalizeThemeName(ghosttyTheme) === normalizeThemeName(opencodeTheme);
 
-  if (ghosttyTheme && opencodeTheme) {
-    const normalized1 = normalizeThemeName(ghosttyTheme);
-    const normalized2 = normalizeThemeName(opencodeTheme);
-    
-    if (normalized1 === normalized2) {
-      console.log(`\n✓ Themes are in sync!`);
-    } else {
-      console.log(`\n⚠ Themes differ. Run sync to align them.`);
+  // Match icon without colors
+  const matchIcon = isMatch ? "[✔]" : "[✘]";
+
+  // Get color palette from Ghostty theme
+  let colors: string[] = [];
+  let finalColor: string | undefined;
+  if (ghosttyTheme !== '(none)') {
+    const palette = readGhosttyTheme(ghosttyTheme);
+    if (palette) {
+      // Use all the vibrant colors for animation
+      colors = [
+        palette.cyan,
+        palette.brightCyan,
+        palette.blue,
+        palette.brightBlue,
+        palette.magenta,
+        palette.brightMagenta,
+        palette.green,
+        palette.brightGreen,
+      ];
+      // Use foreground color for final text (matches terminal text)
+      finalColor = palette.foreground;
     }
   }
+
+  // Final Layout
+  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} ${matchIcon}`;
+
+  await hackerDecode(finalStr, '', colors, finalColor, 25);
+  console.log(); // newline after
 }
