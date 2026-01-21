@@ -90,7 +90,7 @@ async function main() {
         process.exit(1);
       }
     } else if (command === 'detect') {
-      detectCurrentThemes();
+      await detectCurrentThemes();
     } else {
       console.error(`Error: Unknown command "${command}"`);
       showHelp();

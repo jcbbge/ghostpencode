@@ -11,6 +11,7 @@ import {
   writeOpenCodeConfig,
   writeOpenCodeTheme,
 } from './opencode';
+import { hackerDecode } from './hacker-decode';
 
 export async function extractFromImage(
   imagePath: string,
@@ -82,22 +83,18 @@ function normalizeThemeName(name: string): string {
   return name.toLowerCase().replace(/[\s-_]+/g, '');
 }
 
-export function detectCurrentThemes(): void {
-  const ghosttyTheme = getCurrentGhosttyTheme();
-  const opencodeTheme = getCurrentOpenCodeTheme();
+export async function detectCurrentThemes(): Promise<void> {
+  const ghosttyTheme = getCurrentGhosttyTheme() || '(none)';
+  const opencodeTheme = getCurrentOpenCodeTheme() || '(none)';
 
-  console.log('Current themes:');
-  console.log(`  Ghostty:  ${ghosttyTheme || '(none)'}`);
-  console.log(`  OpenCode: ${opencodeTheme || '(none)'}`);
+  const isMatch = ghosttyTheme !== '(none)' && opencodeTheme !== '(none)'
+    && normalizeThemeName(ghosttyTheme) === normalizeThemeName(opencodeTheme);
 
-  if (ghosttyTheme && opencodeTheme) {
-    const normalized1 = normalizeThemeName(ghosttyTheme);
-    const normalized2 = normalizeThemeName(opencodeTheme);
-    
-    if (normalized1 === normalized2) {
-      console.log(`\n✓ Themes are in sync!`);
-    } else {
-      console.log(`\n⚠ Themes differ. Run sync to align them.`);
-    }
-  }
+  // ANSI Colors: Bold Green [✔] or Bold Red [✘]
+  const matchIcon = isMatch ? "\x1b[1;32m[✔]\x1b[0m" : "\x1b[1;31m[✘]\x1b[0m";
+
+  // Final Layout
+  const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} ${matchIcon}`;
+
+  await hackerDecode(finalStr);
 }
