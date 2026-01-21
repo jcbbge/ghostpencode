@@ -96,5 +96,5 @@ export async function detectCurrentThemes(): Promise<void> {
   // Final Layout (without icon in the decoded text)
   const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} `;
 
-  await hackerDecode(finalStr, matchIcon);
+  await hackerDecode(finalStr, matchIcon, 45);
 }

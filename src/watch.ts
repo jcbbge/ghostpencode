@@ -34,31 +34,28 @@ export async function startWatching(): Promise<void> {
 
   // Display with hacker decode animation
   const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} `;
-  console.log(); // blank line before
-  await hackerDecode(finalStr, matchIcon);
-  console.log(); // blank line after
+  await hackerDecode(finalStr, matchIcon, 45);
 
   if (inSync) {
     process.exit(0);
   }
 
   if (ghosttyTheme === '(none)') {
-    console.log('No Ghostty theme detected.\n');
+    console.log('No Ghostty theme detected.');
     process.exit(1);
   }
 
-  const shouldSync = await promptUser('Sync? (y/n): ');
+  const shouldSync = await promptUser('\nSync? (y/n): ');
 
   if (shouldSync) {
     try {
       syncFromGhostty(ghosttyTheme, true);
-      console.log('Done.\n');
+      console.log('Done.');
     } catch (error) {
-      console.error(`Failed: ${error}\n`);
+      console.error(`Failed: ${error}`);
       process.exit(1);
     }
   } else {
-    console.log();
     process.exit(0);
   }
 }
