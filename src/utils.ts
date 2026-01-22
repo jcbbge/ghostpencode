@@ -146,3 +146,114 @@ export function getVibrancy(hex: string): number {
   // We want colors that are both saturated AND bright
   return saturation * max;
 }
+
+/**
+ * Convert RGB to HSL color space
+ */
+function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+    if (max === r) h = 60 * (((g - b) / delta) % 6);
+    else if (max === g) h = 60 * (((b - r) / delta) + 2);
+    else h = 60 * (((r - g) / delta) + 4);
+  }
+
+  if (h < 0) h += 360;
+
+  return { h, s, l };
+}
+
+/**
+ * Convert HSL to RGB color space
+ */
+function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+
+  let r = 0, g = 0, b = 0;
+
+  if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+  else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+  else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+  else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+  else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+  else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
+
+  return {
+    r: Math.round((r + m) * 255),
+    g: Math.round((g + m) * 255),
+    b: Math.round((b + m) * 255)
+  };
+}
+
+/**
+ * Adjust color for contrast while preserving hue and saturation
+ * Works in HSL space to maintain color character
+ */
+export function adjustForContrastPreservingHue(
+  foreground: string,
+  background: string,
+  minRatio = 4.5
+): string {
+  const currentRatio = getContrastRatio(foreground, background);
+  if (currentRatio >= minRatio) return foreground;
+
+  const bgLum = getRelativeLuminance(background);
+  const rgb = parseInt(foreground.slice(1), 16);
+  const r = (rgb >> 16) & 0xff;
+  const g = (rgb >> 8) & 0xff;
+  const b = rgb & 0xff;
+
+  const hsl = rgbToHsl(r, g, b);
+
+  // Determine if we should make it lighter or darker
+  const shouldLighten = bgLum < 0.5;
+
+  // Adjust lightness while preserving hue and saturation
+  let { h, s, l } = hsl;
+  const step = 0.05; // 5% lightness steps
+
+  for (let i = 0; i < 20; i++) {
+    if (shouldLighten) {
+      l = Math.min(1, l + step);
+    } else {
+      l = Math.max(0, l - step);
+    }
+
+    const adjusted = hslToRgb(h, s, l);
+    const adjustedHex = `#${[adjusted.r, adjusted.g, adjusted.b]
+      .map(c => Math.max(0, Math.min(255, c)).toString(16).padStart(2, '0'))
+      .join('')}`;
+
+    if (getContrastRatio(adjustedHex, background) >= minRatio) {
+      return adjustedHex;
+    }
+
+    // If we've maxed out lightness, try reducing saturation
+    if ((shouldLighten && l >= 0.95) || (!shouldLighten && l <= 0.05)) {
+      if (s > 0.1) {
+        s = Math.max(0.1, s - 0.1);
+        l = shouldLighten ? 0.9 : 0.1;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Fallback to white or black
+  return shouldLighten ? '#ffffff' : '#000000';
+}

@@ -172,17 +172,23 @@ describe('Color Extraction Accuracy - Real Images', () => {
 
     expect(Math.max(yellowVibrancy, brightYellowVibrancy)).toBeGreaterThan(0.3);
 
-    // Mint/cyan should be present
+    // Mint/cyan should be present (cyan has more green+blue than red)
     const cyanColors = [palette.cyan, palette.brightCyan];
     const hasCyan = cyanColors.some(c => {
       const rgb = parseInt(c.slice(1), 16);
+      const r = (rgb >> 16) & 0xff;
       const g = (rgb >> 8) & 0xff;
       const b = rgb & 0xff;
-      // Cyan/mint: high green and blue
-      return g > 150 && b > 150;
+      // Cyan/mint: green and blue should be higher than red
+      return (g + b) > r * 1.5;
     });
 
     expect(hasCyan).toBe(true);
+
+    // All colors should meet minimum contrast with background
+    const bg = palette.background;
+    expect(getContrastRatio(palette.cyan, bg)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.brightCyan, bg)).toBeGreaterThanOrEqual(4.0);
   });
 
   test('guard-rail: should capture red ramp and colorful blocks', async () => {
@@ -198,16 +204,83 @@ describe('Color Extraction Accuracy - Real Images', () => {
 
     expect(hasRedPink).toBe(true);
 
-    // Should also have cyan/mint from the blocks
+    // Should have cyan/mint from the blocks (cyan has more green+blue than red)
     const cyanColors = [palette.cyan, palette.brightCyan];
     const hasCyan = cyanColors.some(c => {
       const rgb = parseInt(c.slice(1), 16);
+      const r = (rgb >> 16) & 0xff;
       const g = (rgb >> 8) & 0xff;
       const b = rgb & 0xff;
-      return g > 150 && b > 150;
+      // Cyan: green and blue should be higher than red
+      return (g + b) > r * 1.5;
     });
 
     expect(hasCyan).toBe(true);
+
+    // All ANSI colors should meet minimum contrast ratios with background
+    const bg = palette.background;
+    expect(getContrastRatio(palette.cyan, bg)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.brightCyan, bg)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.foreground, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('Contrast and Accessibility', () => {
+  const fixturesDir = join(import.meta.dir, '../fixtures');
+
+  test('all text colors should meet WCAG AA contrast (4.5:1)', async () => {
+    const palette = await extractPaletteFromImage(join(fixturesDir, 'guard-rail.png'));
+
+    // Primary text colors must meet WCAG AA standard (4.5:1)
+    expect(getContrastRatio(palette.foreground, palette.background)).toBeGreaterThanOrEqual(4.5);
+    expect(getContrastRatio(palette.white, palette.background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('dark ANSI colors should meet minimum contrast (3.5:1)', async () => {
+    const palette = await extractPaletteFromImage(join(fixturesDir, 'shopping-cart.png'));
+
+    // Dark ANSI colors used for syntax highlighting
+    expect(getContrastRatio(palette.red, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.green, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.yellow, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.blue, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.magenta, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.cyan, palette.background)).toBeGreaterThanOrEqual(3.5);
+  });
+
+  test('bright ANSI colors should meet enhanced contrast (4.0:1)', async () => {
+    const palette = await extractPaletteFromImage(join(fixturesDir, 'extension-cord.png'));
+
+    // Bright colors used for important syntax elements
+    expect(getContrastRatio(palette.brightRed, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightGreen, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightYellow, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightBlue, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightMagenta, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightCyan, palette.background)).toBeGreaterThanOrEqual(4.0);
+    expect(getContrastRatio(palette.brightWhite, palette.background)).toBeGreaterThanOrEqual(4.0);
+  });
+
+  test('contrast standards should apply to light backgrounds', async () => {
+    const palette = await extractPaletteFromImage(join(fixturesDir, 'guard-rail.png'));
+
+    // Guard Rail has a light background - colors should be darkened
+    const bgLum = parseInt(palette.background.slice(1), 16);
+    const bgAvg = ((bgLum >> 16) + ((bgLum >> 8) & 0xff) + (bgLum & 0xff)) / 3;
+
+    expect(bgAvg).toBeGreaterThan(200); // Confirm it's a light background
+
+    // All visible colors should meet their contrast requirements
+    expect(getContrastRatio(palette.cyan, palette.background)).toBeGreaterThanOrEqual(3.5);
+    expect(getContrastRatio(palette.green, palette.background)).toBeGreaterThanOrEqual(3.5);
+  });
+
+  test('contrast standards should apply to dark backgrounds', async () => {
+    const palette = await extractPaletteFromImage(join(fixturesDir, 'chute-zone.png'));
+
+    // Verify all colors meet minimum standards regardless of background luminance
+    expect(getContrastRatio(palette.foreground, palette.background)).toBeGreaterThanOrEqual(4.5);
+    expect(getContrastRatio(palette.white, palette.background)).toBeGreaterThanOrEqual(4.5);
   });
 });
 

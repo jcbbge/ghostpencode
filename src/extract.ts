@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import type { Palette } from './types';
-import { getVibrancy, getSaturation, adjustForContrast } from './utils';
+import { getVibrancy, getSaturation, adjustForContrast, adjustForContrastPreservingHue } from './utils';
 
 interface ColorInfo {
   r: number;
@@ -181,10 +181,10 @@ export async function extractPaletteFromImage(imagePath: string): Promise<Palett
     return candidates[0].color.hex;
   };
 
-  // Build palette with improved color selection
+  // Build initial palette with color extraction
   const palette: Palette = {
     background: background.hex,
-    foreground: adjustForContrast(foreground.hex, background.hex, 4.5),
+    foreground: foreground.hex,
     cursor: foreground.hex,
     selection: rgbToHex(
       Math.min(255, Math.round(background.r * 1.8)),
@@ -221,9 +221,31 @@ export async function extractPaletteFromImage(imagePath: string): Promise<Palett
     ),
   };
 
-  // Ensure foreground has good contrast with background
-  palette.foreground = adjustForContrast(palette.foreground, palette.background, 4.5);
-  palette.white = adjustForContrast(palette.white, palette.background, 3.0);
+  // Apply contrast adjustments to ensure readability
+  // Use higher ratios for text colors, moderate for syntax highlighting
+
+  // Primary text colors - highest contrast requirement (WCAG AA: 4.5:1)
+  palette.foreground = adjustForContrastPreservingHue(palette.foreground, palette.background, 4.5);
+  palette.white = adjustForContrastPreservingHue(palette.white, palette.background, 4.5);
+
+  // Dark ANSI colors - moderate contrast (3.5:1)
+  // Used for syntax highlighting, still needs to be readable
+  palette.red = adjustForContrastPreservingHue(palette.red, palette.background, 3.5);
+  palette.green = adjustForContrastPreservingHue(palette.green, palette.background, 3.5);
+  palette.yellow = adjustForContrastPreservingHue(palette.yellow, palette.background, 3.5);
+  palette.blue = adjustForContrastPreservingHue(palette.blue, palette.background, 3.5);
+  palette.magenta = adjustForContrastPreservingHue(palette.magenta, palette.background, 3.5);
+  palette.cyan = adjustForContrastPreservingHue(palette.cyan, palette.background, 3.5);
+
+  // Bright ANSI colors - higher contrast (4.0:1)
+  // Often used for important syntax elements like function names, keywords
+  palette.brightRed = adjustForContrastPreservingHue(palette.brightRed, palette.background, 4.0);
+  palette.brightGreen = adjustForContrastPreservingHue(palette.brightGreen, palette.background, 4.0);
+  palette.brightYellow = adjustForContrastPreservingHue(palette.brightYellow, palette.background, 4.0);
+  palette.brightBlue = adjustForContrastPreservingHue(palette.brightBlue, palette.background, 4.0);
+  palette.brightMagenta = adjustForContrastPreservingHue(palette.brightMagenta, palette.background, 4.0);
+  palette.brightCyan = adjustForContrastPreservingHue(palette.brightCyan, palette.background, 4.0);
+  palette.brightWhite = adjustForContrastPreservingHue(palette.brightWhite, palette.background, 4.0);
 
   return palette;
 }
