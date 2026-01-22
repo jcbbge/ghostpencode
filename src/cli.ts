@@ -3,6 +3,7 @@
 import { basename } from 'path';
 import { extractFromImage, syncFromGhostty, syncFromOpenCode, detectCurrentThemes } from './sync';
 import { startWatching } from './watch';
+import { recalibrateTheme } from './recalibrate';
 
 const args = process.argv.slice(2);
 
@@ -12,6 +13,7 @@ ghostpencode - Theme sync for Ghostty & OpenCode
 
 Usage:
   ghostpencode                                      Check sync status
+  ghostpencode <theme-name>                         Recalibrate theme contrast
   ghostpencode sync --from <ghostty|opencode>       Manual sync
   ghostpencode detect                               Show current themes
   ghostpencode extract <image> [--name <name>]      Extract from image
@@ -19,21 +21,26 @@ Usage:
 
 Commands:
   (no args)                 Check if themes are synced, prompt to sync if needed
-  
+
+  <theme-name>              Display theme colors and recalibrate contrast
+                            - kebab-case name (e.g., "guard-rail") → OpenCode theme
+                            - Title Case name (e.g., "Guard Rail") → Ghostty theme
+
   sync --from <source>      Manual sync (non-interactive)
     --from ghostty          Sync Ghostty → OpenCode
     --from opencode         Sync OpenCode → Ghostty
     --theme <name>          Specific theme (default: current active)
 
   detect                    Show current active themes
-  
+
   extract <image>           Extract palette from image and create themes
     --name <name>           Custom theme name (default: image filename)
 
 Examples:
   ghostpencode                              # Check status & sync
+  ghostpencode "Guard Rail"                 # Recalibrate Ghostty theme
+  ghostpencode guard-rail                   # Recalibrate OpenCode theme
   ghostpencode sync --from ghostty          # Sync Ghostty → OpenCode
-  ghostpencode sync --from opencode         # Sync OpenCode → Ghostty
   ghostpencode extract sunset.png           # Extract from image
 `);
 }
@@ -53,8 +60,14 @@ async function main() {
   const command = args[0];
 
   try {
+    // Check if it's a known command, otherwise treat as theme name
+    const knownCommands = ['help', 'extract', 'sync', 'detect'];
+
     if (command === 'help') {
       showHelp();
+    } else if (!knownCommands.includes(command)) {
+      // Treat as theme name for recalibration
+      await recalibrateTheme(command);
     } else if (command === 'extract') {
       const imagePath = args[1];
       if (!imagePath) {
