@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import type { Palette } from './types';
@@ -25,8 +25,8 @@ export function getCurrentGhosttyTheme(): string | null {
   if (!configPath) return null;
 
   const config = readFileSync(configPath, 'utf-8');
-  // Match theme name but stop at whitespace or comment character
-  const match = config.match(/^theme\s*=\s*([^\s#]+)/m);
+  // Match theme name including spaces, but stop at comment character or end of line
+  const match = config.match(/^theme\s*=\s*([^#\n]+)/m);
   return match ? match[1].trim() : null;
 }
 
@@ -40,7 +40,22 @@ export function readGhosttyTheme(themeName: string): Palette | null {
       break;
     }
   }
-  
+
+  // If exact match not found, try prefix match (handles "3024" -> "3024 Day")
+  if (!themePath) {
+    for (const dir of GHOSTTY_THEMES_DIRS) {
+      if (!existsSync(dir)) continue;
+      const files = readdirSync(dir);
+      const matches = files.filter(f => f.startsWith(themeName + ' '));
+      if (matches.length > 0) {
+        // Prefer "Day" over "Night", or just take first match
+        const preferred = matches.find(m => m.includes('Day')) || matches[0];
+        themePath = join(dir, preferred);
+        break;
+      }
+    }
+  }
+
   if (!themePath) return null;
 
   const content = readFileSync(themePath, 'utf-8');
