@@ -41,6 +41,41 @@ export async function extractFromImage(
 }
 
 export function syncFromGhostty(themeName?: string, quiet = false): void {
+  // Check if Ghostty is using adaptive themes
+  const { getGhosttyThemeConfig } = require('./ghostty');
+  const themeConfig = getGhosttyThemeConfig();
+
+  if (themeConfig.adaptive && !themeName) {
+    // Adaptive theme mode: sync both light and dark
+    if (!quiet) {
+      console.log(`Syncing adaptive Ghostty themes:`);
+      console.log(`  Light: ${themeConfig.light}`);
+      console.log(`  Dark: ${themeConfig.dark}`);
+    }
+
+    const lightPalette = readGhosttyTheme(themeConfig.light!);
+    const darkPalette = readGhosttyTheme(themeConfig.dark!);
+
+    if (!lightPalette || !darkPalette) {
+      throw new Error('Could not read Ghostty adaptive themes');
+    }
+
+    // Create OpenCode theme with both palettes
+    const { writeOpenCodeAdaptiveTheme } = require('./opencode');
+    const opencodeTheme = 'adaptive-theme'; // Or derive from theme names
+    const opencodePath = writeOpenCodeAdaptiveTheme(opencodeTheme, lightPalette, darkPalette);
+    writeOpenCodeConfig(opencodeTheme);
+
+    if (!quiet) {
+      console.log(`✓ OpenCode theme written to ${opencodePath}`);
+      console.log(`\n✨ Synced adaptive themes from Ghostty → OpenCode!`);
+      console.log(`  Light: "${themeConfig.light}" → OpenCode light mode`);
+      console.log(`  Dark: "${themeConfig.dark}" → OpenCode dark mode`);
+    }
+    return;
+  }
+
+  // Single theme mode (original behavior)
   const ghosttyTheme = themeName || getCurrentGhosttyTheme();
 
   if (!ghosttyTheme) {

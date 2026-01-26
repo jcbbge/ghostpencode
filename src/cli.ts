@@ -4,7 +4,6 @@ import { basename } from 'path';
 import { extractFromImage, syncFromGhostty, syncFromOpenCode, detectCurrentThemes } from './sync';
 import { startWatching } from './watch';
 import { recalibrateTheme } from './recalibrate';
-import { watchSystemAppearance } from './appearance-watch';
 
 const args = process.argv.slice(2);
 
@@ -15,8 +14,7 @@ ghostpencode - Theme sync for Ghostty & OpenCode
 Usage:
   ghostpencode                                      Check sync status
   ghostpencode <theme-name>                         Recalibrate theme contrast
-  ghostpencode sync --from <ghostty|opencode>       Manual sync
-  ghostpencode watch                                Watch system appearance & auto-sync
+  ghostpencode sync --from <ghostty|opencode>       Sync themes (auto-detects adaptive)
   ghostpencode detect                               Show current themes
   ghostpencode extract <image> [--name <name>]      Extract from image
   ghostpencode help                                 Show this help
@@ -28,14 +26,13 @@ Commands:
                             - kebab-case name (e.g., "guard-rail") → OpenCode theme
                             - Title Case name (e.g., "Guard Rail") → Ghostty theme
 
-  sync --from <source>      Manual sync (non-interactive)
+  sync --from <source>      Sync themes (non-interactive)
     --from ghostty          Sync Ghostty → OpenCode
+                            • Detects adaptive themes (light:X,dark:Y)
+                            • Creates OpenCode theme with proper light/dark modes
+                            • Both apps auto-switch with system appearance
     --from opencode         Sync OpenCode → Ghostty
     --theme <name>          Specific theme (default: current active)
-
-  watch                     Watch for system appearance changes and auto-sync
-                            When macOS switches Light ↔ Dark mode, automatically
-                            syncs Ghostty's active theme to OpenCode
 
   detect                    Show current active themes
 
@@ -44,10 +41,9 @@ Commands:
 
 Examples:
   ghostpencode                              # Check status & sync
-  ghostpencode watch                        # Auto-sync on appearance change
+  ghostpencode sync --from ghostty          # Sync (auto-detects adaptive themes)
   ghostpencode "Guard Rail"                 # Recalibrate Ghostty theme
   ghostpencode guard-rail                   # Recalibrate OpenCode theme
-  ghostpencode sync --from ghostty          # Sync Ghostty → OpenCode
   ghostpencode extract sunset.png           # Extract from image
 `);
 }
@@ -68,13 +64,10 @@ async function main() {
 
   try {
     // Check if it's a known command, otherwise treat as theme name
-    const knownCommands = ['help', 'extract', 'sync', 'detect', 'watch'];
+    const knownCommands = ['help', 'extract', 'sync', 'detect'];
 
     if (command === 'help') {
       showHelp();
-    } else if (command === 'watch') {
-      watchSystemAppearance();
-      return; // Keep running
     } else if (!knownCommands.includes(command)) {
       // Treat as theme name for recalibration
       await recalibrateTheme(command);

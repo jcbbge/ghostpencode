@@ -80,6 +80,126 @@ export function writeOpenCodeConfig(themeName: string): void {
   renameSync(tempPath, OPENCODE_CONFIG_PATH);
 }
 
+export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Palette, darkPalette: Palette): string {
+  if (!existsSync(OPENCODE_THEMES_DIR)) {
+    mkdirSync(OPENCODE_THEMES_DIR, { recursive: true });
+  }
+
+  const themePath = join(OPENCODE_THEMES_DIR, `${themeName}.json`);
+
+  const theme = {
+    $schema: 'https://opencode.ai/theme.json',
+    defs: {
+      // Light mode colors (prefixed with light_)
+      light_bg: lightPalette.background,
+      light_fg: lightPalette.foreground,
+      light_cursor: lightPalette.cursor,
+      light_selection: lightPalette.selection,
+      light_black: lightPalette.black,
+      light_red: lightPalette.red,
+      light_green: lightPalette.green,
+      light_orange: lightPalette.yellow,
+      light_blue: lightPalette.blue,
+      light_magenta: lightPalette.magenta,
+      light_cyan: lightPalette.cyan,
+      light_white: lightPalette.white,
+      light_brightBlack: lightPalette.brightBlack,
+      light_brightRed: lightPalette.brightRed,
+      light_brightGreen: lightPalette.brightGreen,
+      light_brightOrange: lightPalette.brightYellow,
+      light_brightBlue: lightPalette.brightBlue,
+      light_brightMagenta: lightPalette.brightMagenta,
+      light_brightCyan: lightPalette.brightCyan,
+      light_brightWhite: lightPalette.brightWhite,
+      light_gray1: adjustBrightness(lightPalette.background, 0.95),
+      light_gray2: adjustBrightness(lightPalette.background, 0.9),
+      light_gray3: adjustBrightness(lightPalette.background, 0.85),
+      light_gray4: adjustBrightness(lightPalette.background, 0.8),
+
+      // Dark mode colors (prefixed with dark_)
+      dark_bg: darkPalette.background,
+      dark_fg: darkPalette.foreground,
+      dark_cursor: darkPalette.cursor,
+      dark_selection: darkPalette.selection,
+      dark_black: darkPalette.black,
+      dark_red: darkPalette.red,
+      dark_green: darkPalette.green,
+      dark_orange: darkPalette.yellow,
+      dark_blue: darkPalette.blue,
+      dark_magenta: darkPalette.magenta,
+      dark_cyan: darkPalette.cyan,
+      dark_white: darkPalette.white,
+      dark_brightBlack: darkPalette.brightBlack,
+      dark_brightRed: darkPalette.brightRed,
+      dark_brightGreen: darkPalette.brightGreen,
+      dark_brightOrange: darkPalette.brightYellow,
+      dark_brightBlue: darkPalette.brightBlue,
+      dark_brightMagenta: darkPalette.brightMagenta,
+      dark_brightCyan: darkPalette.brightCyan,
+      dark_brightWhite: darkPalette.brightWhite,
+      dark_gray1: adjustBrightness(darkPalette.background, 1.2),
+      dark_gray2: adjustBrightness(darkPalette.background, 1.5),
+      dark_gray3: adjustBrightness(darkPalette.background, 2),
+      dark_gray4: adjustBrightness(darkPalette.background, 2.5),
+    },
+    theme: {
+      primary: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
+      secondary: { dark: 'dark_cyan', light: 'light_cyan' },
+      accent: { dark: 'dark_magenta', light: 'light_magenta' },
+      error: { dark: 'dark_brightRed', light: 'light_brightRed' },
+      warning: { dark: 'dark_brightOrange', light: 'light_brightOrange' },
+      success: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
+      info: { dark: 'dark_brightCyan', light: 'light_brightCyan' },
+      text: { dark: 'dark_fg', light: 'light_fg' },
+      textMuted: { dark: 'dark_brightBlack', light: 'light_brightBlack' },
+      background: { dark: 'dark_bg', light: 'light_bg' },
+      backgroundPanel: { dark: 'dark_gray1', light: 'light_gray1' },
+      backgroundElement: { dark: 'dark_gray2', light: 'light_gray2' },
+      border: { dark: 'dark_gray3', light: 'light_gray3' },
+      borderActive: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
+      borderSubtle: { dark: 'dark_gray2', light: 'light_gray2' },
+      diffAdded: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
+      diffRemoved: { dark: 'dark_brightRed', light: 'light_brightRed' },
+      diffContext: { dark: 'dark_brightBlack', light: 'light_brightBlack' },
+      diffHunkHeader: { dark: 'dark_gray3', light: 'light_gray3' },
+      diffHighlightAdded: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
+      diffHighlightRemoved: { dark: 'dark_brightRed', light: 'light_brightRed' },
+      diffAddedBg: { dark: '#1a2e1a', light: '#e6ffe6' },
+      diffRemovedBg: { dark: '#2e1a1a', light: '#ffe6e6' },
+      diffContextBg: { dark: 'dark_gray1', light: 'light_gray1' },
+      diffLineNumber: { dark: 'dark_gray4', light: 'light_gray4' },
+      diffAddedLineNumberBg: { dark: '#1a2e1a', light: '#e6ffe6' },
+      diffRemovedLineNumberBg: { dark: '#2e1a1a', light: '#ffe6e6' },
+      markdownText: { dark: 'dark_fg', light: 'light_fg' },
+      markdownHeading: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
+      markdownLink: { dark: 'dark_brightCyan', light: 'light_brightCyan' },
+      markdownLinkText: { dark: 'dark_cyan', light: 'light_cyan' },
+      markdownCode: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
+      markdownBlockQuote: { dark: 'dark_brightBlack', light: 'light_brightBlack' },
+      markdownEmph: { dark: 'dark_brightOrange', light: 'light_brightOrange' },
+      markdownStrong: { dark: 'dark_brightRed', light: 'light_brightRed' },
+      markdownHorizontalRule: { dark: 'dark_gray3', light: 'light_gray3' },
+      markdownListItem: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
+      markdownListEnumeration: { dark: 'dark_cyan', light: 'light_cyan' },
+      markdownImage: { dark: 'dark_magenta', light: 'light_magenta' },
+      markdownImageText: { dark: 'dark_brightMagenta', light: 'light_brightMagenta' },
+      markdownCodeBlock: { dark: 'dark_fg', light: 'light_fg' },
+      syntaxComment: { dark: 'dark_brightBlack', light: 'light_brightBlack' },
+      syntaxKeyword: { dark: 'dark_magenta', light: 'light_magenta' },
+      syntaxFunction: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
+      syntaxVariable: { dark: 'dark_cyan', light: 'light_cyan' },
+      syntaxString: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
+      syntaxNumber: { dark: 'dark_brightMagenta', light: 'light_brightMagenta' },
+      syntaxType: { dark: 'dark_brightCyan', light: 'light_brightCyan' },
+      syntaxOperator: { dark: 'dark_brightOrange', light: 'light_brightOrange' },
+      syntaxPunctuation: { dark: 'dark_fg', light: 'light_fg' },
+    },
+  };
+
+  writeFileSync(themePath, JSON.stringify(theme, null, 2), 'utf-8');
+  return themePath;
+}
+
 export function writeOpenCodeTheme(themeName: string, palette: Palette): string {
   if (!existsSync(OPENCODE_THEMES_DIR)) {
     mkdirSync(OPENCODE_THEMES_DIR, { recursive: true });

@@ -32,25 +32,36 @@ function getSystemAppearance(): 'light' | 'dark' {
   }
 }
 
-export function getCurrentGhosttyTheme(): string | null {
+export function getGhosttyThemeConfig(): { light: string | null; dark: string | null; adaptive: boolean } {
   const configPath = getGhosttyConfigPath();
-  if (!configPath) return null;
+  if (!configPath) return { light: null, dark: null, adaptive: false };
 
   const config = readFileSync(configPath, 'utf-8');
-  // Match theme name including spaces, but stop at comment character or end of line
   const match = config.match(/^theme\s*=\s*([^#\n]+)/m);
-  if (!match) return null;
+  if (!match) return { light: null, dark: null, adaptive: false };
 
   const themeValue = match[1].trim();
 
   // Check if it's an adaptive theme: light:ThemeName,dark:ThemeName
   const adaptiveMatch = themeValue.match(/^light:([^,]+),dark:(.+)$/);
   if (adaptiveMatch) {
-    const appearance = getSystemAppearance();
-    return appearance === 'light' ? adaptiveMatch[1].trim() : adaptiveMatch[2].trim();
+    return {
+      light: adaptiveMatch[1].trim(),
+      dark: adaptiveMatch[2].trim(),
+      adaptive: true,
+    };
   }
 
-  return themeValue;
+  // Single theme
+  return { light: themeValue, dark: themeValue, adaptive: false };
+}
+
+export function getCurrentGhosttyTheme(): string | null {
+  const { light, dark, adaptive } = getGhosttyThemeConfig();
+  if (!adaptive) return light; // For single themes, light === dark
+
+  const appearance = getSystemAppearance();
+  return appearance === 'light' ? light : dark;
 }
 
 export function readGhosttyTheme(themeName: string): Palette | null {
