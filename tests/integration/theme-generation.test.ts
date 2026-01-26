@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { extractFromImage } from '../../src/sync';
 import { readGhosttyTheme } from '../../src/ghostty';
 import { readOpenCodeTheme } from '../../src/opencode';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -43,6 +43,39 @@ describe('Theme Generation - End-to-End', () => {
       const themePath = join(OPENCODE_THEMES_DIR, `${theme}.json`);
       if (existsSync(themePath)) {
         rmSync(themePath, { force: true });
+      }
+    }
+
+    // Clean up metadata from configs
+    const OPENCODE_KV_PATH = join(homedir(), '.local/state/opencode/kv.json');
+    if (existsSync(OPENCODE_KV_PATH)) {
+      try {
+        const kv = JSON.parse(readFileSync(OPENCODE_KV_PATH, 'utf-8'));
+        if (kv.theme && createdThemes.opencode.includes(kv.theme)) {
+          delete kv.theme;
+          writeFileSync(OPENCODE_KV_PATH, JSON.stringify(kv, null, 2), 'utf-8');
+        }
+      } catch (err) {
+        console.error('Failed to clean up OpenCode KV:', err);
+      }
+    }
+
+    const ghosttyConfigPaths = [
+      join(homedir(), 'Library/Application Support/com.mitchellh.ghostty/config'),
+      join(homedir(), '.config/ghostty/config'),
+    ];
+    for (const configPath of ghosttyConfigPaths) {
+      if (existsSync(configPath)) {
+        try {
+          let config = readFileSync(configPath, 'utf-8');
+          const themeMatch = config.match(/^theme\s*=\s*(.+)$/m);
+          if (themeMatch && createdThemes.ghostty.includes(themeMatch[1].trim())) {
+            config = config.replace(/^theme\s*=.*$/m, '');
+            writeFileSync(configPath, config, 'utf-8');
+          }
+        } catch (err) {
+          console.error(`Failed to clean up Ghostty config at ${configPath}:`, err);
+        }
       }
     }
   });
