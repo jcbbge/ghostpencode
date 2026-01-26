@@ -253,12 +253,11 @@ describe('Round-trip conversion: Built-in OpenCode (binary) → Ghostty → Open
         if (themeMatch) {
           const currentTheme = themeMatch[1].trim();
           if (testThemeNames.includes(currentTheme)) {
+            // Only restore if we had an original config
             if (originalGhosttyConfig) {
-              config = originalGhosttyConfig;
-            } else {
-              config = config.replace(/^theme\s*=.*$/m, '');
+              writeFileSync(GHOSTTY_CONFIG_PATH, originalGhosttyConfig, 'utf-8');
             }
-            writeFileSync(GHOSTTY_CONFIG_PATH, config, 'utf-8');
+            // If no original config, leave current config as-is (don't delete theme line)
           }
         }
       } catch (err) {

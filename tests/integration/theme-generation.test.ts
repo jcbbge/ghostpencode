@@ -67,11 +67,12 @@ describe('Theme Generation - End-to-End', () => {
     for (const configPath of ghosttyConfigPaths) {
       if (existsSync(configPath)) {
         try {
-          let config = readFileSync(configPath, 'utf-8');
+          const config = readFileSync(configPath, 'utf-8');
           const themeMatch = config.match(/^theme\s*=\s*(.+)$/m);
           if (themeMatch && createdThemes.ghostty.includes(themeMatch[1].trim())) {
-            config = config.replace(/^theme\s*=.*$/m, '');
-            writeFileSync(configPath, config, 'utf-8');
+            // Remove the theme line only if it's a test theme
+            const cleanedConfig = config.replace(/^theme\s*=.*$\n?/m, '');
+            writeFileSync(configPath, cleanedConfig, 'utf-8');
           }
         } catch (err) {
           console.error(`Failed to clean up Ghostty config at ${configPath}:`, err);
