@@ -18,6 +18,35 @@ describe('Theme Generation - End-to-End', () => {
     { imageName: 'guard-rail.png', ghosttyName: 'Guard Rail', opencodeName: 'guard-rail' },
   ];
 
+  // Track all themes created during tests for cleanup
+  const createdThemes = {
+    ghostty: [
+      'Shopping Cart', 'Chute Zone', 'Extension Cord', 'Guard Rail',
+      'My Theme', 'Another Theme', 'Mixed Case Theme', 'Test Format', 'Test Json'
+    ],
+    opencode: [
+      'shopping-cart', 'chute-zone', 'extension-cord', 'guard-rail',
+      'my-theme', 'another-theme', 'mixed-case-theme', 'test-format', 'test-json'
+    ]
+  };
+
+  afterAll(() => {
+    // Clean up all test themes from user directories
+    for (const theme of createdThemes.ghostty) {
+      const themePath = join(GHOSTTY_THEMES_DIR, theme);
+      if (existsSync(themePath)) {
+        rmSync(themePath, { force: true });
+      }
+    }
+
+    for (const theme of createdThemes.opencode) {
+      const themePath = join(OPENCODE_THEMES_DIR, `${theme}.json`);
+      if (existsSync(themePath)) {
+        rmSync(themePath, { force: true });
+      }
+    }
+  });
+
   test('should create both Ghostty and OpenCode theme files', async () => {
     const imagePath = join(FIXTURES_DIR, 'shopping-cart.png');
     await extractFromImage(imagePath, 'shopping-cart');
