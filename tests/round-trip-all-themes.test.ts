@@ -1,20 +1,21 @@
 import { test, expect, describe } from 'bun:test';
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-const TEST_GHOSTTY_DIR = join('/tmp/ghostpencode-test/ghostty/themes');
-const TEST_OPENCODE_DIR = join('/tmp/ghostpencode-test/opencode/themes');
+const TEST_GHOSTTY_DIR = join(homedir(), '.config/ghostty/themes');
+const TEST_OPENCODE_DIR = join(homedir(), '.config/opencode/themes');
 
 describe('Round-trip conversion for all Ghostty themes', () => {
   test('All 442 Ghostty themes round-trip correctly', async () => {
     // Setup test directories
-    if (existsSync('/tmp/ghostpencode-test')) {
-      rmSync('/tmp/ghostpencode-test', { recursive: true, force: true });
-    }
     mkdirSync(TEST_GHOSTTY_DIR, { recursive: true });
     mkdirSync(TEST_OPENCODE_DIR, { recursive: true });
+
+    // Track themes we create for cleanup
+    const createdGhosttyThemes: string[] = [];
+    const createdOpenCodeThemes: string[] = [];
 
     // Get all Ghostty theme names
     const themesOutput = execSync('ghostty +list-themes', { encoding: 'utf-8' });
@@ -84,6 +85,7 @@ describe('Round-trip conversion for all Ghostty themes', () => {
         };
 
         writeFileSync(opencodePath, JSON.stringify(opencodeTheme, null, 2), 'utf-8');
+        createdOpenCodeThemes.push(opencodePath);
 
         // Step 3: Read back from OpenCode
         const readbackPalette = readOpenCodeTheme(opencodeFilename);
@@ -139,6 +141,7 @@ selection-foreground = ${readbackPalette.foreground}
 `;
 
         writeFileSync(roundtripPath, content, 'utf-8');
+        createdGhosttyThemes.push(roundtripPath);
 
         // Step 6: Read back from Ghostty and verify metadata
         const roundtripContent = readFileSync(roundtripPath, 'utf-8');
@@ -168,8 +171,21 @@ selection-foreground = ${readbackPalette.foreground}
       }
     }
 
-    // Cleanup
-    rmSync('/tmp/ghostpencode-test', { recursive: true, force: true });
+    // Cleanup - only delete themes we created
+    for (const themePath of createdGhosttyThemes) {
+      try {
+        if (existsSync(themePath)) rmSync(themePath);
+      } catch (err) {
+        console.error(`Failed to clean up ${themePath}:`, err);
+      }
+    }
+    for (const themePath of createdOpenCodeThemes) {
+      try {
+        if (existsSync(themePath)) rmSync(themePath);
+      } catch (err) {
+        console.error(`Failed to clean up ${themePath}:`, err);
+      }
+    }
 
     // Report results
     if (failures.length === 0) {
