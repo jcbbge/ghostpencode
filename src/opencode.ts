@@ -3,7 +3,6 @@ import { homedir } from 'os';
 import { join } from 'path';
 import type { Palette } from './types';
 
-const OPENCODE_CONFIG_PATH = join(homedir(), '.config/opencode/opencode.json');
 const OPENCODE_KV_PATH = join(homedir(), '.local/state/opencode/kv.json');
 const OPENCODE_THEMES_DIR = join(homedir(), '.config/opencode/themes');
 
@@ -56,8 +55,8 @@ export function readOpenCodeTheme(themeName: string): Palette | null {
 }
 
 export function writeOpenCodeConfig(themeName: string): void {
-  // Write to KV storage ONLY (what /themes command does)
-  // DO NOT TOUCH ~/.config/opencode/opencode.json - it overrides KV storage
+  // Write to KV storage ONLY (mimics OpenCode's /themes command)
+  // This ensures theme changes persist without overriding user's config file
   const kvDir = join(homedir(), '.local/state/opencode');
   if (!existsSync(kvDir)) {
     mkdirSync(kvDir, { recursive: true });
