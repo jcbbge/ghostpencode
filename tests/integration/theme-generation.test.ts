@@ -83,7 +83,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('should create both Ghostty and OpenCode theme files', async () => {
     const imagePath = join(FIXTURES_DIR, 'shopping-cart.png');
-    await extractFromImage(imagePath, 'shopping-cart');
+    await extractFromImage(imagePath, 'shopping-cart', { writeConfigs: false });
 
     const ghosttyPath = join(GHOSTTY_THEMES_DIR, 'Shopping Cart');
     const opencodePath = join(OPENCODE_THEMES_DIR, 'shopping-cart.json');
@@ -97,7 +97,7 @@ describe('Theme Generation - End-to-End', () => {
       const imagePath = join(FIXTURES_DIR, imageName);
       const themeName = imageName.replace('.png', '');
 
-      await extractFromImage(imagePath, themeName);
+      await extractFromImage(imagePath, themeName, { writeConfigs: false });
 
       const ghosttyPath = join(GHOSTTY_THEMES_DIR, ghosttyName);
       const opencodePath = join(OPENCODE_THEMES_DIR, `${opencodeName}.json`);
@@ -109,7 +109,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('Ghostty theme should have correct structure (16 palette colors)', async () => {
     const imagePath = join(FIXTURES_DIR, 'chute-zone.png');
-    await extractFromImage(imagePath, 'chute-zone');
+    await extractFromImage(imagePath, 'chute-zone', { writeConfigs: false });
 
     const palette = readGhosttyTheme('Chute Zone');
 
@@ -131,7 +131,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('OpenCode theme should have correct JSON structure', async () => {
     const imagePath = join(FIXTURES_DIR, 'extension-cord.png');
-    await extractFromImage(imagePath, 'extension-cord');
+    await extractFromImage(imagePath, 'extension-cord', { writeConfigs: false });
 
     const palette = readOpenCodeTheme('extension-cord');
 
@@ -153,7 +153,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('both platforms should have matching color palettes', async () => {
     const imagePath = join(FIXTURES_DIR, 'guard-rail.png');
-    await extractFromImage(imagePath, 'guard-rail');
+    await extractFromImage(imagePath, 'guard-rail', { writeConfigs: false });
 
     const ghosttyPalette = readGhosttyTheme('Guard Rail');
     const opencodePalette = readOpenCodeTheme('guard-rail');
@@ -178,7 +178,7 @@ describe('Theme Generation - End-to-End', () => {
 
     for (const { input, ghostty, opencode } of testCases) {
       const imagePath = join(FIXTURES_DIR, 'shopping-cart.png');
-      await extractFromImage(imagePath, input);
+      await extractFromImage(imagePath, input, { writeConfigs: false });
 
       const ghosttyPath = join(GHOSTTY_THEMES_DIR, ghostty);
       const opencodePath = join(OPENCODE_THEMES_DIR, `${opencode}.json`);
@@ -207,7 +207,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('Ghostty theme file should follow correct format', async () => {
     const imagePath = join(FIXTURES_DIR, 'shopping-cart.png');
-    await extractFromImage(imagePath, 'test-format');
+    await extractFromImage(imagePath, 'test-format', { writeConfigs: false });
 
     const themePath = join(GHOSTTY_THEMES_DIR, 'Test Format');
     const content = await Bun.file(themePath).text();
@@ -232,7 +232,7 @@ describe('Theme Generation - End-to-End', () => {
 
   test('OpenCode theme should have proper JSON schema', async () => {
     const imagePath = join(FIXTURES_DIR, 'chute-zone.png');
-    await extractFromImage(imagePath, 'test-json');
+    await extractFromImage(imagePath, 'test-json', { writeConfigs: false });
 
     const themePath = join(OPENCODE_THEMES_DIR, 'test-json.json');
     const content = await Bun.file(themePath).text();

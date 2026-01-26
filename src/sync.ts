@@ -16,7 +16,8 @@ import { toKebabCase, toTitleCase } from './utils';
 
 export async function extractFromImage(
   imagePath: string,
-  themeName: string
+  themeName: string,
+  options: { writeConfigs?: boolean } = { writeConfigs: true }
 ): Promise<void> {
   console.log(`Extracting palette from ${imagePath}...`);
   const palette = await extractPaletteFromImage(imagePath);
@@ -27,17 +28,25 @@ export async function extractFromImage(
 
   console.log(`Creating Ghostty theme: ${ghosttyName}`);
   const ghosttyPath = writeGhosttyTheme(ghosttyName, palette, opencodeName);
-  writeGhosttyConfig(ghosttyName, palette);
+  if (options.writeConfigs) {
+    writeGhosttyConfig(ghosttyName, palette);
+  }
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
 
   console.log(`Creating OpenCode theme: ${opencodeName}`);
   const opencodePath = writeOpenCodeTheme(opencodeName, palette, ghosttyName);
-  writeOpenCodeConfig(opencodeName);
+  if (options.writeConfigs) {
+    writeOpenCodeConfig(opencodeName);
+  }
   console.log(`✓ OpenCode theme written to ${opencodePath}`);
 
-  console.log(`\n✨ Themes created and activated!`);
-  console.log(`  Ghostty: "${ghosttyName}"`);
-  console.log(`  OpenCode: "${opencodeName}"`);
+  if (options.writeConfigs) {
+    console.log(`\n✨ Themes created and activated!`);
+    console.log(`  Ghostty: "${ghosttyName}"`);
+    console.log(`  OpenCode: "${opencodeName}"`);
+  } else {
+    console.log(`\n✨ Theme files created (not activated)`);
+  }
 }
 
 export function syncFromGhostty(themeName?: string, quiet = false): void {

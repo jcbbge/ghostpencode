@@ -113,9 +113,10 @@ describe('CLI Integration Tests', () => {
     test('should show sync status with no arguments', () => {
       const result = runCLI([]);
 
-      // With no args, it shows sync status
-      expect(result.stdout).toContain('GHOSTTY');
-      expect(result.stdout).toContain('OPENCODE');
+      // With no args, it shows sync status (looks for GHT/OCD abbreviations from animated output)
+      expect(result.stdout).toContain('GHT');
+      expect(result.stdout).toContain('OCD');
+      expect(result.stdout).toContain('SYS_THEME');
     });
     
     test('should display help with --help flag', () => {
@@ -246,31 +247,33 @@ describe('CLI Integration Tests', () => {
   describe('Detect command', () => {
     test('should run detect command', () => {
       const result = runCLI(['detect']);
-      
+
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain('Current themes:');
-      expect(result.stdout).toContain('Ghostty:');
-      expect(result.stdout).toContain('OpenCode:');
+      // Check for animated output abbreviations
+      expect(result.stdout).toContain('GHT');
+      expect(result.stdout).toContain('OCD');
+      expect(result.stdout).toContain('SYS_THEME');
     });
-    
+
     test('should show sync status', () => {
       const result = runCLI(['detect']);
-      
+
       expect(result.status).toBe(0);
-      // Should show either "in sync" or "differ"
-      const output = result.stdout.toLowerCase();
+      // Check for match indicator (✔ or ✘)
+      const output = result.stdout;
       expect(
-        output.includes('sync') || 
-        output.includes('differ')
+        output.includes('✔') ||
+        output.includes('✘')
       ).toBe(true);
     });
   });
   
   describe('Unknown command', () => {
-    test('should show error for unknown command', () => {
+    test('should treat unknown command as theme name and show error', () => {
       const result = runCLI(['invalid-command']);
-      
-      expect(result.stderr).toContain('Unknown command');
+
+      // Unknown commands are treated as theme names for recalibration
+      expect(result.stderr).toContain('Theme "invalid-command" not found');
       expect(result.status).not.toBe(0);
     });
   });

@@ -20,45 +20,51 @@ export function getCurrentOpenCodeTheme(): string | null {
 
 export function readOpenCodeTheme(themeName: string): Palette | null {
   const themePath = join(OPENCODE_THEMES_DIR, `${themeName}.json`);
-  if (!existsSync(themePath)) return null;
 
-  try {
-    const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
-    const defs = theme.defs || {};
+  // First try to read from user themes directory
+  if (existsSync(themePath)) {
+    try {
+      const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
+      const defs = theme.defs || {};
 
-    // Extract colors from defs
-    const palette = {
-      background: defs.bg || defs.background || '#000000',
-      foreground: defs.fg || defs.foreground || '#ffffff',
-      cursor: defs.cursor || defs.fg || '#ffffff',
-      selection: defs.selection || '#404040',
-      black: defs.black || '#000000',
-      red: defs.red || '#cc0000',
-      green: defs.green || '#00cc00',
-      yellow: defs.orange || defs.yellow || '#cccc00',
-      blue: defs.blue || '#0000cc',
-      magenta: defs.magenta || '#cc00cc',
-      cyan: defs.cyan || '#00cccc',
-      white: defs.white || '#cccccc',
-      brightBlack: defs.brightBlack || '#808080',
-      brightRed: defs.brightRed || '#ff0000',
-      brightGreen: defs.brightGreen || '#00ff00',
-      brightYellow: defs.brightOrange || defs.brightYellow || '#ffff00',
-      brightBlue: defs.brightBlue || '#0000ff',
-      brightMagenta: defs.brightMagenta || '#ff00ff',
-      brightCyan: defs.brightCyan || '#00ffff',
-      brightWhite: defs.brightWhite || '#ffffff',
-    };
+      // Extract colors from defs
+      const palette = {
+        background: defs.bg || defs.background || '#000000',
+        foreground: defs.fg || defs.foreground || '#ffffff',
+        cursor: defs.cursor || defs.fg || '#ffffff',
+        selection: defs.selection || '#404040',
+        black: defs.black || '#000000',
+        red: defs.red || '#cc0000',
+        green: defs.green || '#00cc00',
+        yellow: defs.orange || defs.yellow || '#cccc00',
+        blue: defs.blue || '#0000cc',
+        magenta: defs.magenta || '#cc00cc',
+        cyan: defs.cyan || '#00cccc',
+        white: defs.white || '#cccccc',
+        brightBlack: defs.brightBlack || '#808080',
+        brightRed: defs.brightRed || '#ff0000',
+        brightGreen: defs.brightGreen || '#00ff00',
+        brightYellow: defs.brightOrange || defs.brightYellow || '#ffff00',
+        brightBlue: defs.brightBlue || '#0000ff',
+        brightMagenta: defs.brightMagenta || '#ff00ff',
+        brightCyan: defs.brightCyan || '#00ffff',
+        brightWhite: defs.brightWhite || '#ffffff',
+      };
 
-    // Store original Ghostty name if present
-    if (theme._ghosttyName) {
-      (palette as any)._ghosttyName = theme._ghosttyName;
+      // Store original Ghostty name if present
+      if (theme._ghosttyName) {
+        (palette as any)._ghosttyName = theme._ghosttyName;
+      }
+
+      return palette;
+    } catch {
+      return null;
     }
-
-    return palette;
-  } catch {
-    return null;
   }
+
+  // If not in user themes, try built-in themes
+  const { extractBuiltinTheme } = require('./extract-builtin-themes');
+  return extractBuiltinTheme(themeName);
 }
 
 export function writeOpenCodeConfig(themeName: string): void {
