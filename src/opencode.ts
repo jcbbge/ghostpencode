@@ -27,7 +27,7 @@ export function readOpenCodeTheme(themeName: string): Palette | null {
     const defs = theme.defs || {};
 
     // Extract colors from defs
-    return {
+    const palette = {
       background: defs.bg || defs.background || '#000000',
       foreground: defs.fg || defs.foreground || '#ffffff',
       cursor: defs.cursor || defs.fg || '#ffffff',
@@ -49,6 +49,13 @@ export function readOpenCodeTheme(themeName: string): Palette | null {
       brightCyan: defs.brightCyan || '#00ffff',
       brightWhite: defs.brightWhite || '#ffffff',
     };
+
+    // Store original Ghostty name if present
+    if (theme._ghosttyName) {
+      (palette as any)._ghosttyName = theme._ghosttyName;
+    }
+
+    return palette;
   } catch {
     return null;
   }
@@ -77,18 +84,28 @@ export function writeOpenCodeConfig(themeName: string): void {
   renameSync(kvTempPath, OPENCODE_KV_PATH);
 }
 
-export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Palette, darkPalette: Palette): string {
+export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Palette, darkPalette: Palette, lightGhosttyName?: string, darkGhosttyName?: string): string {
   if (!existsSync(OPENCODE_THEMES_DIR)) {
     mkdirSync(OPENCODE_THEMES_DIR, { recursive: true });
   }
 
   const themePath = join(OPENCODE_THEMES_DIR, `${themeName}.json`);
 
-  const theme = {
+  const theme: any = {
     $schema: 'https://opencode.ai/theme.json',
-    defs: {
-      // Light mode colors (prefixed with light_)
-      light_bg: lightPalette.background,
+  };
+
+  // Store original Ghostty names for round-trip conversion
+  if (lightGhosttyName || darkGhosttyName) {
+    theme._ghosttyAdaptive = {
+      light: lightGhosttyName,
+      dark: darkGhosttyName,
+    };
+  }
+
+  theme.defs = {
+    // Light mode colors (prefixed with light_)
+    light_bg: lightPalette.background,
       light_fg: lightPalette.foreground,
       light_cursor: lightPalette.cursor,
       light_selection: lightPalette.selection,
@@ -134,12 +151,13 @@ export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Pale
       dark_brightMagenta: darkPalette.brightMagenta,
       dark_brightCyan: darkPalette.brightCyan,
       dark_brightWhite: darkPalette.brightWhite,
-      dark_gray1: adjustBrightness(darkPalette.background, 1.2),
-      dark_gray2: adjustBrightness(darkPalette.background, 1.5),
-      dark_gray3: adjustBrightness(darkPalette.background, 2),
-      dark_gray4: adjustBrightness(darkPalette.background, 2.5),
-    },
-    theme: {
+    dark_gray1: adjustBrightness(darkPalette.background, 1.2),
+    dark_gray2: adjustBrightness(darkPalette.background, 1.5),
+    dark_gray3: adjustBrightness(darkPalette.background, 2),
+    dark_gray4: adjustBrightness(darkPalette.background, 2.5),
+  };
+
+  theme.theme = {
       primary: { dark: 'dark_brightBlue', light: 'light_brightBlue' },
       secondary: { dark: 'dark_cyan', light: 'light_cyan' },
       accent: { dark: 'dark_magenta', light: 'light_magenta' },
@@ -188,51 +206,58 @@ export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Pale
       syntaxString: { dark: 'dark_brightGreen', light: 'light_brightGreen' },
       syntaxNumber: { dark: 'dark_brightMagenta', light: 'light_brightMagenta' },
       syntaxType: { dark: 'dark_brightCyan', light: 'light_brightCyan' },
-      syntaxOperator: { dark: 'dark_brightOrange', light: 'light_brightOrange' },
-      syntaxPunctuation: { dark: 'dark_fg', light: 'light_fg' },
-    },
+    syntaxOperator: { dark: 'dark_brightOrange', light: 'light_brightOrange' },
+    syntaxPunctuation: { dark: 'dark_fg', light: 'light_fg' },
   };
 
   writeFileSync(themePath, JSON.stringify(theme, null, 2), 'utf-8');
   return themePath;
 }
 
-export function writeOpenCodeTheme(themeName: string, palette: Palette): string {
+export function writeOpenCodeTheme(themeName: string, palette: Palette, ghosttyName?: string): string {
   if (!existsSync(OPENCODE_THEMES_DIR)) {
     mkdirSync(OPENCODE_THEMES_DIR, { recursive: true });
   }
 
   const themePath = join(OPENCODE_THEMES_DIR, `${themeName}.json`);
 
-  const theme = {
+  const theme: any = {
     $schema: 'https://opencode.ai/theme.json',
-    defs: {
-      bg: palette.background,
-      fg: palette.foreground,
-      cursor: palette.cursor,
-      selection: palette.selection,
-      black: palette.black,
-      red: palette.red,
-      green: palette.green,
-      orange: palette.yellow,
-      blue: palette.blue,
-      magenta: palette.magenta,
-      cyan: palette.cyan,
-      white: palette.white,
-      brightBlack: palette.brightBlack,
-      brightRed: palette.brightRed,
-      brightGreen: palette.brightGreen,
-      brightOrange: palette.brightYellow,
-      brightBlue: palette.brightBlue,
-      brightMagenta: palette.brightMagenta,
-      brightCyan: palette.brightCyan,
-      brightWhite: palette.brightWhite,
-      gray1: adjustBrightness(palette.background, 1.2),
-      gray2: adjustBrightness(palette.background, 1.5),
-      gray3: adjustBrightness(palette.background, 2),
-      gray4: adjustBrightness(palette.background, 2.5),
-    },
-    theme: {
+  };
+
+  // Store original Ghostty name for round-trip conversion
+  if (ghosttyName) {
+    theme._ghosttyName = ghosttyName;
+  }
+
+  theme.defs = {
+    bg: palette.background,
+    fg: palette.foreground,
+    cursor: palette.cursor,
+    selection: palette.selection,
+    black: palette.black,
+    red: palette.red,
+    green: palette.green,
+    orange: palette.yellow,
+    blue: palette.blue,
+    magenta: palette.magenta,
+    cyan: palette.cyan,
+    white: palette.white,
+    brightBlack: palette.brightBlack,
+    brightRed: palette.brightRed,
+    brightGreen: palette.brightGreen,
+    brightOrange: palette.brightYellow,
+    brightBlue: palette.brightBlue,
+    brightMagenta: palette.brightMagenta,
+    brightCyan: palette.brightCyan,
+    brightWhite: palette.brightWhite,
+    gray1: adjustBrightness(palette.background, 1.2),
+    gray2: adjustBrightness(palette.background, 1.5),
+    gray3: adjustBrightness(palette.background, 2),
+    gray4: adjustBrightness(palette.background, 2.5),
+  };
+
+  theme.theme = {
       primary: { dark: 'brightBlue', light: 'brightBlue' },
       secondary: { dark: 'cyan', light: 'cyan' },
       accent: { dark: 'magenta', light: 'magenta' },
@@ -281,9 +306,8 @@ export function writeOpenCodeTheme(themeName: string, palette: Palette): string 
       syntaxString: { dark: 'brightGreen', light: 'brightGreen' },
       syntaxNumber: { dark: 'brightMagenta', light: 'brightMagenta' },
       syntaxType: { dark: 'brightCyan', light: 'brightCyan' },
-      syntaxOperator: { dark: 'brightOrange', light: 'brightOrange' },
-      syntaxPunctuation: { dark: 'fg', light: 'fg' },
-    },
+    syntaxOperator: { dark: 'brightOrange', light: 'brightOrange' },
+    syntaxPunctuation: { dark: 'fg', light: 'fg' },
   };
 
   writeFileSync(themePath, JSON.stringify(theme, null, 2), 'utf-8');

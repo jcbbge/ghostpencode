@@ -26,12 +26,12 @@ export async function extractFromImage(
   const opencodeName = toKebabCase(themeName);
 
   console.log(`Creating Ghostty theme: ${ghosttyName}`);
-  const ghosttyPath = writeGhosttyTheme(ghosttyName, palette);
+  const ghosttyPath = writeGhosttyTheme(ghosttyName, palette, opencodeName);
   writeGhosttyConfig(ghosttyName, palette);
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
 
   console.log(`Creating OpenCode theme: ${opencodeName}`);
-  const opencodePath = writeOpenCodeTheme(opencodeName, palette);
+  const opencodePath = writeOpenCodeTheme(opencodeName, palette, ghosttyName);
   writeOpenCodeConfig(opencodeName);
   console.log(`✓ OpenCode theme written to ${opencodePath}`);
 
@@ -63,7 +63,13 @@ export function syncFromGhostty(themeName?: string, quiet = false): void {
     // Create OpenCode theme with both palettes
     const { writeOpenCodeAdaptiveTheme } = require('./opencode');
     const opencodeTheme = 'adaptive-theme';
-    const opencodePath = writeOpenCodeAdaptiveTheme(opencodeTheme, lightPalette, darkPalette);
+    const opencodePath = writeOpenCodeAdaptiveTheme(
+      opencodeTheme,
+      lightPalette,
+      darkPalette,
+      themeConfig.light,
+      themeConfig.dark
+    );
     writeOpenCodeConfig(opencodeTheme);
 
     if (!quiet) {
@@ -93,7 +99,7 @@ export function syncFromGhostty(themeName?: string, quiet = false): void {
   const opencodeTheme = toKebabCase(ghosttyTheme);
 
   if (!quiet) console.log(`Syncing to OpenCode...`);
-  const opencodePath = writeOpenCodeTheme(opencodeTheme, palette);
+  const opencodePath = writeOpenCodeTheme(opencodeTheme, palette, ghosttyTheme);
   writeOpenCodeConfig(opencodeTheme);
 
   if (!quiet) {
@@ -118,11 +124,11 @@ export function syncFromOpenCode(themeName?: string): void {
     throw new Error(`Could not read OpenCode theme: ${opencodeTheme}`);
   }
 
-  // Convert OpenCode theme name (kebab-case) to Ghostty format (Title Case)
-  const ghosttyTheme = toTitleCase(opencodeTheme);
+  // Use stored Ghostty name if present, otherwise convert kebab-case to Title Case
+  const ghosttyTheme = (palette as any)._ghosttyName || toTitleCase(opencodeTheme);
 
   console.log(`Syncing to Ghostty...`);
-  const ghosttyPath = writeGhosttyTheme(ghosttyTheme, palette);
+  const ghosttyPath = writeGhosttyTheme(ghosttyTheme, palette, opencodeTheme);
   writeGhosttyConfig(ghosttyTheme, palette);
 
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
