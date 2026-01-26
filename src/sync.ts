@@ -35,7 +35,7 @@ export async function extractFromImage(
   writeOpenCodeConfig(opencodeName);
   console.log(`✓ OpenCode theme written to ${opencodePath}`);
 
-  console.log(`\n✨ Theme created and activated!`);
+  console.log(`\n✨ Themes created and activated!`);
   console.log(`  Ghostty: "${ghosttyName}"`);
   console.log(`  OpenCode: "${opencodeName}"`);
 }
@@ -62,7 +62,7 @@ export function syncFromGhostty(themeName?: string, quiet = false): void {
 
     // Create OpenCode theme with both palettes
     const { writeOpenCodeAdaptiveTheme } = require('./opencode');
-    const opencodeTheme = 'adaptive-theme'; // Or derive from theme names
+    const opencodeTheme = 'adaptive-theme';
     const opencodePath = writeOpenCodeAdaptiveTheme(opencodeTheme, lightPalette, darkPalette);
     writeOpenCodeConfig(opencodeTheme);
 
@@ -142,7 +142,6 @@ export async function detectCurrentThemes(): Promise<void> {
   const isMatch = ghosttyTheme !== '(none)' && opencodeTheme !== '(none)'
     && normalizeThemeName(ghosttyTheme) === normalizeThemeName(opencodeTheme);
 
-  // Match icon without colors
   const matchIcon = isMatch ? "[✔]" : "[✘]";
 
   // Get color palette from Ghostty theme
@@ -151,7 +150,6 @@ export async function detectCurrentThemes(): Promise<void> {
   if (ghosttyTheme !== '(none)') {
     const palette = readGhosttyTheme(ghosttyTheme);
     if (palette) {
-      // Use all the vibrant colors for animation
       colors = [
         palette.cyan,
         palette.brightCyan,
@@ -162,14 +160,12 @@ export async function detectCurrentThemes(): Promise<void> {
         palette.green,
         palette.brightGreen,
       ];
-      // Use foreground color for final text (matches terminal text)
       finalColor = palette.foreground;
     }
   }
 
-  // Final Layout
   const finalStr = `SYS_THEME :: [ GHT ] ${ghosttyTheme} ◆ [ OCD ] ${opencodeTheme} ${matchIcon}`;
 
   await hackerDecode(finalStr, '', colors, finalColor, 25);
-  console.log(); // newline after
+  console.log();
 }

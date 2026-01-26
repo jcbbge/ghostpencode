@@ -4,14 +4,16 @@ import { join } from 'path';
 import type { Palette } from './types';
 
 const OPENCODE_CONFIG_PATH = join(homedir(), '.config/opencode/opencode.json');
+const OPENCODE_KV_PATH = join(homedir(), '.local/state/opencode/kv.json');
 const OPENCODE_THEMES_DIR = join(homedir(), '.config/opencode/themes');
 
 export function getCurrentOpenCodeTheme(): string | null {
-  if (!existsSync(OPENCODE_CONFIG_PATH)) return null;
+  // Read from KV storage (where /themes command stores selection)
+  if (!existsSync(OPENCODE_KV_PATH)) return null;
 
   try {
-    const config = JSON.parse(readFileSync(OPENCODE_CONFIG_PATH, 'utf-8'));
-    return config.theme || null;
+    const kv = JSON.parse(readFileSync(OPENCODE_KV_PATH, 'utf-8'));
+    return kv.theme || null;
   } catch {
     return null;
   }
@@ -54,30 +56,26 @@ export function readOpenCodeTheme(themeName: string): Palette | null {
 }
 
 export function writeOpenCodeConfig(themeName: string): void {
-  if (!existsSync(OPENCODE_CONFIG_PATH)) {
-    const dir = join(homedir(), '.config/opencode');
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
+  // Write to KV storage ONLY (what /themes command does)
+  // DO NOT TOUCH ~/.config/opencode/opencode.json - it overrides KV storage
+  const kvDir = join(homedir(), '.local/state/opencode');
+  if (!existsSync(kvDir)) {
+    mkdirSync(kvDir, { recursive: true });
   }
 
-  let config: any = {};
-
-  if (existsSync(OPENCODE_CONFIG_PATH)) {
+  let kv: any = {};
+  if (existsSync(OPENCODE_KV_PATH)) {
     try {
-      config = JSON.parse(readFileSync(OPENCODE_CONFIG_PATH, 'utf-8'));
+      kv = JSON.parse(readFileSync(OPENCODE_KV_PATH, 'utf-8'));
     } catch {
-      config = {};
+      kv = {};
     }
   }
 
-  config.theme = themeName;
-  config.$schema = 'https://opencode.ai/config.json';
-
-  // Atomic write: write to temp file, then rename
-  const tempPath = OPENCODE_CONFIG_PATH + '.tmp';
-  writeFileSync(tempPath, JSON.stringify(config, null, 2), 'utf-8');
-  renameSync(tempPath, OPENCODE_CONFIG_PATH);
+  kv.theme = themeName;
+  const kvTempPath = OPENCODE_KV_PATH + '.tmp';
+  writeFileSync(kvTempPath, JSON.stringify(kv, null, 2), 'utf-8');
+  renameSync(kvTempPath, OPENCODE_KV_PATH);
 }
 
 export function writeOpenCodeAdaptiveTheme(themeName: string, lightPalette: Palette, darkPalette: Palette): string {
