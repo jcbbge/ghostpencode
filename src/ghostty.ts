@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import type { Palette } from './types';
@@ -38,21 +38,6 @@ export function readGhosttyTheme(themeName: string): Palette | null {
     if (existsSync(path)) {
       themePath = path;
       break;
-    }
-  }
-
-  // If exact match not found, try prefix match (handles "3024" -> "3024 Day")
-  if (!themePath) {
-    for (const dir of GHOSTTY_THEMES_DIRS) {
-      if (!existsSync(dir)) continue;
-      const files = readdirSync(dir);
-      const matches = files.filter(f => f.startsWith(themeName + ' '));
-      if (matches.length > 0) {
-        // Prefer "Day" over "Night", or just take first match
-        const preferred = matches.find(m => m.includes('Day')) || matches[0];
-        themePath = join(dir, preferred);
-        break;
-      }
     }
   }
 
