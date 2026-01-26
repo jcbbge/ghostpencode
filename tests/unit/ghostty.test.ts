@@ -13,7 +13,10 @@ describe('Ghostty theme functions', () => {
   const testDir = join(import.meta.dir, '../fixtures/ghostty-test');
   const testConfigPath = join(testDir, 'config');
   const testThemesDir = join(testDir, 'themes');
-  
+
+  // Track themes created during tests for cleanup
+  const createdThemePaths: string[] = [];
+
   const mockPalette: Palette = {
     background: '#191919',
     foreground: '#bbbbbb',
@@ -36,15 +39,28 @@ describe('Ghostty theme functions', () => {
     brightCyan: '#65b8c1',
     brightWhite: '#8e8e8e'
   };
-  
+
   beforeEach(() => {
     mkdirSync(testDir, { recursive: true });
     mkdirSync(testThemesDir, { recursive: true });
+    createdThemePaths.length = 0; // Clear the array
   });
-  
+
   afterEach(() => {
+    // Clean up test fixtures directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
+    }
+
+    // Clean up themes created in real Ghostty directory
+    for (const themePath of createdThemePaths) {
+      try {
+        if (existsSync(themePath)) {
+          rmSync(themePath);
+        }
+      } catch (err) {
+        console.error(`Failed to clean up ${themePath}:`, err);
+      }
     }
   });
   
@@ -72,6 +88,7 @@ font-size = 12
     test('should write valid Ghostty theme file', () => {
       const themeName = 'test-theme';
       const themePath = writeGhosttyTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       
       expect(existsSync(themePath)).toBe(true);
       
@@ -88,6 +105,7 @@ font-size = 12
     test('should include all 16 ANSI colors', () => {
       const themeName = 'test-complete';
       const themePath = writeGhosttyTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const content = readFileSync(themePath, 'utf-8');
       
       for (let i = 0; i <= 15; i++) {
@@ -98,6 +116,7 @@ font-size = 12
     test('should create theme directory if it does not exist', () => {
       const themeName = 'new-theme';
       const themePath = writeGhosttyTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       
       expect(existsSync(themePath)).toBe(true);
     });
@@ -147,6 +166,7 @@ selection-background = #404040
     test('should handle hex colors in various formats', () => {
       const themeName = 'format-test';
       const themePath = writeGhosttyTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const content = readFileSync(themePath, 'utf-8');
       
       const hexRegex = /#[0-9a-f]{6}/gi;

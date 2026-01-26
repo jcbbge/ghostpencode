@@ -13,7 +13,10 @@ describe('OpenCode theme functions', () => {
   const testDir = join(import.meta.dir, '../fixtures/opencode-test');
   const testConfigPath = join(testDir, 'opencode.json');
   const testThemesDir = join(testDir, 'themes');
-  
+
+  // Track themes created during tests for cleanup
+  const createdThemePaths: string[] = [];
+
   const mockPalette: Palette = {
     background: '#191919',
     foreground: '#bbbbbb',
@@ -36,15 +39,28 @@ describe('OpenCode theme functions', () => {
     brightCyan: '#65b8c1',
     brightWhite: '#8e8e8e'
   };
-  
+
   beforeEach(() => {
     mkdirSync(testDir, { recursive: true });
     mkdirSync(testThemesDir, { recursive: true });
+    createdThemePaths.length = 0; // Clear the array
   });
-  
+
   afterEach(() => {
+    // Clean up test fixtures directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
+    }
+
+    // Clean up themes created in real OpenCode directory
+    for (const themePath of createdThemePaths) {
+      try {
+        if (existsSync(themePath)) {
+          rmSync(themePath);
+        }
+      } catch (err) {
+        console.error(`Failed to clean up ${themePath}:`, err);
+      }
     }
   });
   
@@ -52,6 +68,7 @@ describe('OpenCode theme functions', () => {
     test('should create valid OpenCode theme JSON', () => {
       const themeName = 'test-theme';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       
       expect(existsSync(themePath)).toBe(true);
       
@@ -66,6 +83,7 @@ describe('OpenCode theme functions', () => {
     test('should include all color definitions', () => {
       const themeName = 'test-defs';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
       
       expect(theme.defs.bg).toBe('#191919');
@@ -79,6 +97,7 @@ describe('OpenCode theme functions', () => {
     test('should generate gray scale variants', () => {
       const themeName = 'test-grays';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
       
       expect(theme.defs.gray1).toBeDefined();
@@ -97,6 +116,7 @@ describe('OpenCode theme functions', () => {
     test('should include all theme mappings', () => {
       const themeName = 'test-mappings';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
       
       const requiredThemeKeys = [
@@ -115,6 +135,7 @@ describe('OpenCode theme functions', () => {
     test('should use dark/light variants for theme properties', () => {
       const themeName = 'test-variants';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
       
       expect(theme.theme.primary).toHaveProperty('dark');
@@ -126,6 +147,7 @@ describe('OpenCode theme functions', () => {
     test('should create themes directory if it does not exist', () => {
       const themeName = 'new-theme';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       
       expect(existsSync(themePath)).toBe(true);
     });
@@ -205,6 +227,7 @@ describe('OpenCode theme functions', () => {
     test('should produce valid hex colors', () => {
       const themeName = 'color-test';
       const themePath = writeOpenCodeTheme(themeName, mockPalette);
+      createdThemePaths.push(themePath);
       const theme = JSON.parse(readFileSync(themePath, 'utf-8'));
       
       const hexRegex = /^#[0-9a-f]{6}$/i;

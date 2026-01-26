@@ -10,15 +10,30 @@ describe('End-to-End Integration Tests', () => {
   const testDir = join(import.meta.dir, '../fixtures/e2e-test');
   const ghosttyThemesDir = join(testDir, 'ghostty-themes');
   const opencodeThemesDir = join(testDir, 'opencode-themes');
-  
+
+  // Track themes created during tests for cleanup
+  const createdThemePaths: string[] = [];
+
   beforeAll(() => {
     mkdirSync(ghosttyThemesDir, { recursive: true });
     mkdirSync(opencodeThemesDir, { recursive: true });
   });
-  
+
   afterAll(() => {
+    // Clean up test fixtures directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
+    }
+
+    // Clean up themes created in real directories
+    for (const themePath of createdThemePaths) {
+      try {
+        if (existsSync(themePath)) {
+          rmSync(themePath);
+        }
+      } catch (err) {
+        console.error(`Failed to clean up ${themePath}:`, err);
+      }
     }
   });
   
@@ -44,6 +59,7 @@ describe('End-to-End Integration Tests', () => {
       
       // 3. Create Ghostty theme
       const ghosttyPath = writeGhosttyTheme('workflow-theme', palette);
+      createdThemePaths.push(ghosttyPath);
       expect(existsSync(ghosttyPath)).toBe(true);
       
       const ghosttyContent = readFileSync(ghosttyPath, 'utf-8');
@@ -52,6 +68,7 @@ describe('End-to-End Integration Tests', () => {
       
       // 4. Create OpenCode theme
       const opencodePath = writeOpenCodeTheme('workflow-theme', palette);
+      createdThemePaths.push(opencodePath);
       expect(existsSync(opencodePath)).toBe(true);
       
       const opencodeContent = readFileSync(opencodePath, 'utf-8');
@@ -81,7 +98,9 @@ describe('End-to-End Integration Tests', () => {
       
       // Create both themes
       const ghosttyPath = writeGhosttyTheme('fidelity-theme', palette);
+      createdThemePaths.push(ghosttyPath);
       const opencodePath = writeOpenCodeTheme('fidelity-theme', palette);
+      createdThemePaths.push(opencodePath);
       
       // Parse both
       const ghosttyContent = readFileSync(ghosttyPath, 'utf-8');
@@ -114,6 +133,7 @@ describe('End-to-End Integration Tests', () => {
       const palette = await extractPaletteFromImage(imagePath);
       
       const ghosttyPath = writeGhosttyTheme('ansi-theme', palette);
+      createdThemePaths.push(ghosttyPath);
       const ghosttyContent = readFileSync(ghosttyPath, 'utf-8');
       
       // Verify all 16 ANSI colors are present
@@ -122,6 +142,7 @@ describe('End-to-End Integration Tests', () => {
       }
       
       const opencodePath = writeOpenCodeTheme('ansi-theme', palette);
+      createdThemePaths.push(opencodePath);
       const opencodeTheme = JSON.parse(readFileSync(opencodePath, 'utf-8'));
       
       // Verify all color defs exist
