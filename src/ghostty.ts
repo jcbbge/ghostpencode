@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import type { Palette } from './types';
@@ -25,7 +25,8 @@ export function getCurrentGhosttyTheme(): string | null {
   if (!configPath) return null;
 
   const config = readFileSync(configPath, 'utf-8');
-  const match = config.match(/^theme\s*=\s*(.+)$/m);
+  // Match theme name but stop at whitespace or comment character
+  const match = config.match(/^theme\s*=\s*([^\s#]+)/m);
   return match ? match[1].trim() : null;
 }
 
@@ -105,7 +106,7 @@ export function writeGhosttyConfig(themeName: string, palette: Palette): void {
   }
 
   let config = existsSync(configPath) ? readFileSync(configPath, 'utf-8') : '';
-  
+
   // Update or add theme line
   if (config.match(/^theme\s*=/m)) {
     config = config.replace(/^theme\s*=.*$/m, `theme = ${themeName}`);
@@ -113,7 +114,10 @@ export function writeGhosttyConfig(themeName: string, palette: Palette): void {
     config += `\ntheme = ${themeName}\n`;
   }
 
-  writeFileSync(configPath, config, 'utf-8');
+  // Atomic write: write to temp file, then rename
+  const tempPath = configPath + '.tmp';
+  writeFileSync(tempPath, config, 'utf-8');
+  renameSync(tempPath, configPath);
 }
 
 export function writeGhosttyTheme(themeName: string, palette: Palette): string {

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import type { Palette } from './types';
@@ -62,7 +62,7 @@ export function writeOpenCodeConfig(themeName: string): void {
   }
 
   let config: any = {};
-  
+
   if (existsSync(OPENCODE_CONFIG_PATH)) {
     try {
       config = JSON.parse(readFileSync(OPENCODE_CONFIG_PATH, 'utf-8'));
@@ -74,7 +74,10 @@ export function writeOpenCodeConfig(themeName: string): void {
   config.theme = themeName;
   config.$schema = 'https://opencode.ai/config.json';
 
-  writeFileSync(OPENCODE_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+  // Atomic write: write to temp file, then rename
+  const tempPath = OPENCODE_CONFIG_PATH + '.tmp';
+  writeFileSync(tempPath, JSON.stringify(config, null, 2), 'utf-8');
+  renameSync(tempPath, OPENCODE_CONFIG_PATH);
 }
 
 export function writeOpenCodeTheme(themeName: string, palette: Palette): string {
