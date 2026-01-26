@@ -6,6 +6,19 @@ import { homedir } from 'os';
 
 const TEST_GHOSTTY_DIR = join(homedir(), '.config/ghostty/themes');
 const TEST_OPENCODE_DIR = join(homedir(), '.config/opencode/themes');
+const OPENCODE_KV_PATH = join(homedir(), '.local/state/opencode/kv.json');
+
+// Find actual Ghostty config path
+function getGhosttyConfigPath(): string | null {
+  const paths = [
+    join(homedir(), 'Library/Application Support/com.mitchellh.ghostty/config'),
+    join(homedir(), '.config/ghostty/config'),
+  ];
+  for (const path of paths) {
+    if (existsSync(path)) return path;
+  }
+  return null;
+}
 
 describe('Round-trip conversion for all Ghostty themes', () => {
   test('All 442 Ghostty themes round-trip correctly', async () => {
@@ -16,6 +29,21 @@ describe('Round-trip conversion for all Ghostty themes', () => {
     // Track themes we create for cleanup
     const createdGhosttyThemes: string[] = [];
     const createdOpenCodeThemes: string[] = [];
+
+    // Save original config state for restoration
+    let originalKV: any = null;
+    let originalGhosttyConfig: string = '';
+    const GHOSTTY_CONFIG_PATH = getGhosttyConfigPath();
+
+    if (existsSync(OPENCODE_KV_PATH)) {
+      try {
+        originalKV = JSON.parse(readFileSync(OPENCODE_KV_PATH, 'utf-8'));
+      } catch {}
+    }
+
+    if (GHOSTTY_CONFIG_PATH && existsSync(GHOSTTY_CONFIG_PATH)) {
+      originalGhosttyConfig = readFileSync(GHOSTTY_CONFIG_PATH, 'utf-8');
+    }
 
     // Get all Ghostty theme names
     const themesOutput = execSync('ghostty +list-themes', { encoding: 'utf-8' });
@@ -184,6 +212,54 @@ selection-foreground = ${readbackPalette.foreground}
         if (existsSync(themePath)) rmSync(themePath);
       } catch (err) {
         console.error(`Failed to clean up ${themePath}:`, err);
+      }
+    }
+
+    // Scrub metadata from config files
+    // Clean OpenCode KV storage
+    if (existsSync(OPENCODE_KV_PATH)) {
+      try {
+        const kv = JSON.parse(readFileSync(OPENCODE_KV_PATH, 'utf-8'));
+        const testThemeNames = createdOpenCodeThemes.map(p =>
+          p.split('/').pop()!.replace('.json', '')
+        );
+
+        // Only remove if current theme is a test theme
+        if (kv.theme && testThemeNames.includes(kv.theme)) {
+          if (originalKV && originalKV.theme) {
+            kv.theme = originalKV.theme;
+          } else {
+            delete kv.theme;
+          }
+          writeFileSync(OPENCODE_KV_PATH, JSON.stringify(kv, null, 2), 'utf-8');
+        }
+      } catch (err) {
+        console.error('Failed to clean up OpenCode KV:', err);
+      }
+    }
+
+    // Clean Ghostty config
+    if (GHOSTTY_CONFIG_PATH && existsSync(GHOSTTY_CONFIG_PATH)) {
+      try {
+        let config = readFileSync(GHOSTTY_CONFIG_PATH, 'utf-8');
+        const testThemeNames = createdGhosttyThemes.map(p => p.split('/').pop()!);
+
+        // Check if current theme is a test theme
+        const themeMatch = config.match(/^theme\s*=\s*(.+)$/m);
+        if (themeMatch) {
+          const currentTheme = themeMatch[1].trim();
+          if (testThemeNames.includes(currentTheme)) {
+            // Restore original or remove
+            if (originalGhosttyConfig) {
+              config = originalGhosttyConfig;
+            } else {
+              config = config.replace(/^theme\s*=.*$/m, '');
+            }
+            writeFileSync(GHOSTTY_CONFIG_PATH, config, 'utf-8');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to clean up Ghostty config:', err);
       }
     }
 
