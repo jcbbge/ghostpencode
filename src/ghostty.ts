@@ -20,6 +20,18 @@ function getGhosttyConfigPath(): string | null {
   return null;
 }
 
+function getSystemAppearance(): 'light' | 'dark' {
+  // Check macOS system appearance
+  try {
+    const { execSync } = require('child_process');
+    const result = execSync('defaults read -g AppleInterfaceStyle 2>/dev/null', { encoding: 'utf-8' });
+    return result.trim().toLowerCase() === 'dark' ? 'dark' : 'light';
+  } catch {
+    // Command fails in light mode
+    return 'light';
+  }
+}
+
 export function getCurrentGhosttyTheme(): string | null {
   const configPath = getGhosttyConfigPath();
   if (!configPath) return null;
@@ -27,7 +39,18 @@ export function getCurrentGhosttyTheme(): string | null {
   const config = readFileSync(configPath, 'utf-8');
   // Match theme name including spaces, but stop at comment character or end of line
   const match = config.match(/^theme\s*=\s*([^#\n]+)/m);
-  return match ? match[1].trim() : null;
+  if (!match) return null;
+
+  const themeValue = match[1].trim();
+
+  // Check if it's an adaptive theme: light:ThemeName,dark:ThemeName
+  const adaptiveMatch = themeValue.match(/^light:([^,]+),dark:(.+)$/);
+  if (adaptiveMatch) {
+    const appearance = getSystemAppearance();
+    return appearance === 'light' ? adaptiveMatch[1].trim() : adaptiveMatch[2].trim();
+  }
+
+  return themeValue;
 }
 
 export function readGhosttyTheme(themeName: string): Palette | null {

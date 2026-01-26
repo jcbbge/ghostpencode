@@ -4,6 +4,7 @@ import { basename } from 'path';
 import { extractFromImage, syncFromGhostty, syncFromOpenCode, detectCurrentThemes } from './sync';
 import { startWatching } from './watch';
 import { recalibrateTheme } from './recalibrate';
+import { watchSystemAppearance } from './appearance-watch';
 
 const args = process.argv.slice(2);
 
@@ -15,6 +16,7 @@ Usage:
   ghostpencode                                      Check sync status
   ghostpencode <theme-name>                         Recalibrate theme contrast
   ghostpencode sync --from <ghostty|opencode>       Manual sync
+  ghostpencode watch                                Watch system appearance & auto-sync
   ghostpencode detect                               Show current themes
   ghostpencode extract <image> [--name <name>]      Extract from image
   ghostpencode help                                 Show this help
@@ -31,6 +33,10 @@ Commands:
     --from opencode         Sync OpenCode → Ghostty
     --theme <name>          Specific theme (default: current active)
 
+  watch                     Watch for system appearance changes and auto-sync
+                            When macOS switches Light ↔ Dark mode, automatically
+                            syncs Ghostty's active theme to OpenCode
+
   detect                    Show current active themes
 
   extract <image>           Extract palette from image and create themes
@@ -38,6 +44,7 @@ Commands:
 
 Examples:
   ghostpencode                              # Check status & sync
+  ghostpencode watch                        # Auto-sync on appearance change
   ghostpencode "Guard Rail"                 # Recalibrate Ghostty theme
   ghostpencode guard-rail                   # Recalibrate OpenCode theme
   ghostpencode sync --from ghostty          # Sync Ghostty → OpenCode
@@ -61,10 +68,13 @@ async function main() {
 
   try {
     // Check if it's a known command, otherwise treat as theme name
-    const knownCommands = ['help', 'extract', 'sync', 'detect'];
+    const knownCommands = ['help', 'extract', 'sync', 'detect', 'watch'];
 
     if (command === 'help') {
       showHelp();
+    } else if (command === 'watch') {
+      watchSystemAppearance();
+      return; // Keep running
     } else if (!knownCommands.includes(command)) {
       // Treat as theme name for recalibration
       await recalibrateTheme(command);
