@@ -2,6 +2,7 @@ import { extractPaletteFromImage } from './extract';
 import {
   getCurrentGhosttyTheme,
   readGhosttyTheme,
+  reloadGhosttyConfig,
   writeGhosttyConfig,
   writeGhosttyTheme,
 } from './ghostty';
@@ -139,8 +140,10 @@ export function syncFromOpenCode(themeName?: string): void {
   console.log(`Syncing to Ghostty...`);
   const ghosttyPath = writeGhosttyTheme(ghosttyTheme, palette, opencodeTheme);
   writeGhosttyConfig(ghosttyTheme, palette);
+  reloadGhosttyConfig();
 
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
+  console.log(`✓ Ghostty config reloaded`);
   console.log(`\n✨ Synced from OpenCode → Ghostty!`);
   console.log(`  OpenCode: "${opencodeTheme}"`);
   console.log(`  Ghostty: "${ghosttyTheme}"`);

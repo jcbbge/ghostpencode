@@ -149,9 +149,15 @@ export function readGhosttyTheme(themeName: string): Palette | null {
 }
 
 export function writeGhosttyConfig(themeName: string, palette: Palette): void {
-  const configPath = getGhosttyConfigPath();
+  let configPath = getGhosttyConfigPath();
+  
+  // If no config exists, create one in the XDG location
   if (!configPath) {
-    throw new Error('Could not find Ghostty config file');
+    const configDir = join(homedir(), '.config/ghostty');
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true });
+    }
+    configPath = GHOSTTY_CONFIG_PATHS[1]; // ~/.config/ghostty/config
   }
 
   let config = existsSync(configPath) ? readFileSync(configPath, 'utf-8') : '';
@@ -167,6 +173,18 @@ export function writeGhosttyConfig(themeName: string, palette: Palette): void {
   const tempPath = configPath + '.tmp';
   writeFileSync(tempPath, config, 'utf-8');
   renameSync(tempPath, configPath);
+}
+
+export function reloadGhosttyConfig(): void {
+  try {
+    const { execSync } = require('child_process');
+    // Send SIGUSR2 to reload Ghostty config
+    execSync(`pkill -SIGUSR2 ghostty`, {
+      stdio: 'ignore',
+    });
+  } catch (error) {
+    // Silently fail - Ghostty might not be running
+  }
 }
 
 export function writeGhosttyTheme(themeName: string, palette: Palette, opencodeFilename?: string): string {
