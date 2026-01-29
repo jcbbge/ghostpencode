@@ -26,6 +26,10 @@ describe('Round-trip conversion for all Ghostty themes', () => {
     mkdirSync(TEST_GHOSTTY_DIR, { recursive: true });
     mkdirSync(TEST_OPENCODE_DIR, { recursive: true });
 
+    // Record initial state BEFORE creating themes
+    const initialGhosttyThemes = existsSync(TEST_GHOSTTY_DIR) ? readdirSync(TEST_GHOSTTY_DIR) : [];
+    const initialOpenCodeThemes = existsSync(TEST_OPENCODE_DIR) ? readdirSync(TEST_OPENCODE_DIR) : [];
+
     // Track themes we create for cleanup
     const createdGhosttyThemes: string[] = [];
     const createdOpenCodeThemes: string[] = [];
@@ -199,19 +203,30 @@ selection-foreground = ${readbackPalette.foreground}
       }
     }
 
-    // Cleanup - only delete themes we created
-    for (const themePath of createdGhosttyThemes) {
-      try {
-        if (existsSync(themePath)) rmSync(themePath);
-      } catch (err) {
-        console.error(`Failed to clean up ${themePath}:`, err);
+    // Cleanup - only delete themes that WEREN'T there before
+    if (existsSync(TEST_GHOSTTY_DIR)) {
+      const currentGhosttyThemes = readdirSync(TEST_GHOSTTY_DIR);
+      for (const theme of currentGhosttyThemes) {
+        if (!initialGhosttyThemes.includes(theme)) {
+          try {
+            rmSync(join(TEST_GHOSTTY_DIR, theme));
+          } catch (err) {
+            console.error(`Failed to clean up Ghostty theme ${theme}:`, err);
+          }
+        }
       }
     }
-    for (const themePath of createdOpenCodeThemes) {
-      try {
-        if (existsSync(themePath)) rmSync(themePath);
-      } catch (err) {
-        console.error(`Failed to clean up ${themePath}:`, err);
+
+    if (existsSync(TEST_OPENCODE_DIR)) {
+      const currentOpenCodeThemes = readdirSync(TEST_OPENCODE_DIR);
+      for (const theme of currentOpenCodeThemes) {
+        if (!initialOpenCodeThemes.includes(theme)) {
+          try {
+            rmSync(join(TEST_OPENCODE_DIR, theme));
+          } catch (err) {
+            console.error(`Failed to clean up OpenCode theme ${theme}:`, err);
+          }
+        }
       }
     }
 
