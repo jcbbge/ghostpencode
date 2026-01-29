@@ -189,7 +189,7 @@ function writeOpenCodeTheme(name: string, palette: Palette): void {
 /**
  * Display palette as colored ANSI blocks
  */
-function displayColoredBlocks(palette: Palette): void {
+export function displayColoredBlocks(palette: Palette): void {
   const colors = [
     palette.black,
     palette.red,
@@ -277,7 +277,7 @@ async function loadAnswersIfPiped(): Promise<void> {
 /**
  * Prompt user for input
  */
-async function prompt(message: string): Promise<boolean> {
+export async function prompt(message: string): Promise<boolean> {
   await loadAnswersIfPiped();
 
   if (answerQueue.length > 0) {

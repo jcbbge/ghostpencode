@@ -14,6 +14,7 @@ import {
 } from './opencode';
 import { hackerDecode } from './hacker-decode';
 import { toKebabCase, toTitleCase } from './utils';
+import { displayColoredBlocks, prompt } from './recalibrate';
 
 export async function extractFromImage(
   imagePath: string,
@@ -27,24 +28,37 @@ export async function extractFromImage(
   const ghosttyName = toTitleCase(themeName);
   const opencodeName = toKebabCase(themeName);
 
+  console.log(`\nExtracted palette:`);
+  displayColoredBlocks(palette);
+  console.log();
+
+  // Create theme files (always)
   console.log(`Creating Ghostty theme: ${ghosttyName}`);
   const ghosttyPath = writeGhosttyTheme(ghosttyName, palette, opencodeName);
-  if (options.writeConfigs) {
-    writeGhosttyConfig(ghosttyName, palette);
-  }
   console.log(`✓ Ghostty theme written to ${ghosttyPath}`);
 
   console.log(`Creating OpenCode theme: ${opencodeName}`);
   const opencodePath = writeOpenCodeTheme(opencodeName, palette, ghosttyName);
-  if (options.writeConfigs) {
-    writeOpenCodeConfig(opencodeName);
-  }
   console.log(`✓ OpenCode theme written to ${opencodePath}`);
 
+  // Prompt before applying themes
   if (options.writeConfigs) {
-    console.log(`\n✨ Themes created and activated!`);
-    console.log(`  Ghostty: "${ghosttyName}"`);
-    console.log(`  OpenCode: "${opencodeName}"`);
+    const shouldApply = await prompt('\nAPPLY THEMES NOW? [y/n]: ');
+
+    if (shouldApply) {
+      writeGhosttyConfig(ghosttyName, palette);
+      writeOpenCodeConfig(opencodeName);
+      reloadGhosttyConfig();
+
+      console.log(`\n✨ Themes created and activated!`);
+      console.log(`  Ghostty: "${ghosttyName}"`);
+      console.log(`  OpenCode: "${opencodeName}"`);
+      console.log(`\nℹ️  Restart OpenCode to see the new theme.`);
+    } else {
+      console.log(`\n✨ Theme files created (not activated)`);
+      console.log(`\nTo apply later, run:`);
+      console.log(`  ghostpencode sync --from ghostty --theme "${ghosttyName}"`);
+    }
   } else {
     console.log(`\n✨ Theme files created (not activated)`);
   }

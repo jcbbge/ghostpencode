@@ -4,6 +4,8 @@
 
 Extract color palettes from images or sync themes between Ghostty and OpenCode with automatic naming convention conversion and instant reload.
 
+![Demo of theme sync](./assets/demo-sync.gif)
+
 ## Key Features
 
 - **Image → Themes** - Extract palettes from any image using k-means clustering
@@ -190,13 +192,13 @@ Current themes:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    ghostpencode                          │
-│                                                           │
+│                    ghostpencode                         │
+│                                                         │
 │  ┌────────────┐         ┌─────────────┐         ┌──────┐│
 │  │   Image    │────────▶│   Extract   │────────▶│Theme ││
 │  │  (PNG/JPG) │         │  (K-means)  │         │Files ││
 │  └────────────┘         └─────────────┘         └──────┘│
-│                                                           │
+│                                                         │
 │  ┌────────────┐         ┌─────────────┐         ┌──────┐│
 │  │  Ghostty   │◀───────▶│    Sync     │◀───────▶│Open- ││
 │  │   Theme    │ Title   │  Engine     │ kebab   │Code  ││
@@ -676,6 +678,10 @@ function set_theme() {
         return 1
     fi
 
+    # Title-case the theme name (Ghostty themes are title-cased with spaces, not hyphens)
+    # First convert hyphens to spaces, then capitalize first letter of each word
+    theme_name=$(echo "$theme_name" | tr '-' ' ' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')
+
     # Update config
     if grep -q '^theme[[:space:]]*=' "$GHOSTTY_CONFIG" 2>/dev/null; then
         sed -i '' "s/^theme[[:space:]]*=.*/theme = $theme_name/" "$GHOSTTY_CONFIG"
@@ -769,11 +775,11 @@ ghth --current
 # List available themes
 ghth --list
 
-# Set a theme
+# Set a theme (case doesn't matter - automatically title-cased, hyphens converted to spaces)
 ghth "Nord"
-
-# Set another theme
-ghth "Dracula"
+ghth "dracula"           # Converts to "Dracula"
+ghth "GRUVBOX"           # Converts to "Gruvbox"
+ghth "catppuccin-mocha"  # Converts to "Catppuccin Mocha"
 ```
 
 ## Step 4: Add Shell Integration (Optional)
