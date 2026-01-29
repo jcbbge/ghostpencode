@@ -29,6 +29,9 @@ const BUILTIN_OPENCODE_THEMES = [
 
 describe('Round-trip conversion: OpenCode → Ghostty → OpenCode', () => {
   test('All OpenCode themes round-trip correctly', async () => {
+    // Record initial state BEFORE creating themes
+    const initialGhosttyThemes = existsSync(TEST_GHOSTTY_DIR) ? readdirSync(TEST_GHOSTTY_DIR) : [];
+
     // Setup
     const createdGhosttyThemes: string[] = [];
     let originalKV: any = null;
@@ -111,12 +114,17 @@ describe('Round-trip conversion: OpenCode → Ghostty → OpenCode', () => {
       }
     }
 
-    // Cleanup
-    for (const themePath of createdGhosttyThemes) {
-      try {
-        if (existsSync(themePath)) rmSync(themePath);
-      } catch (err) {
-        console.error(`Failed to clean up ${themePath}:`, err);
+    // Cleanup - only delete themes that WEREN'T there before
+    if (existsSync(TEST_GHOSTTY_DIR)) {
+      const currentGhosttyThemes = readdirSync(TEST_GHOSTTY_DIR);
+      for (const theme of currentGhosttyThemes) {
+        if (!initialGhosttyThemes.includes(theme)) {
+          try {
+            rmSync(join(TEST_GHOSTTY_DIR, theme));
+          } catch (err) {
+            console.error(`Failed to clean up Ghostty theme ${theme}:`, err);
+          }
+        }
       }
     }
 

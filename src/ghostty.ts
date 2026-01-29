@@ -40,14 +40,14 @@ export function getGhosttyThemeConfig(): { light: string | null; dark: string | 
   const match = config.match(/^theme\s*=\s*([^#\n]+)/m);
   if (!match) return { light: null, dark: null, adaptive: false };
 
-  const themeValue = match[1].trim();
+  const themeValue = match[1].trim().replace(/^["']|["']$/g, '');
 
   // Check if it's an adaptive theme: light:ThemeName,dark:ThemeName
   const adaptiveMatch = themeValue.match(/^light:([^,]+),dark:(.+)$/);
   if (adaptiveMatch) {
     return {
-      light: adaptiveMatch[1].trim(),
-      dark: adaptiveMatch[2].trim(),
+      light: adaptiveMatch[1].trim().replace(/^["']|["']$/g, ''),
+      dark: adaptiveMatch[2].trim().replace(/^["']|["']$/g, ''),
       adaptive: true,
     };
   }
