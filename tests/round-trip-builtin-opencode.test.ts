@@ -1,5 +1,5 @@
 import { test, expect, describe } from 'bun:test';
-import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -29,6 +29,10 @@ const BUILTIN_OPENCODE_THEMES = [
 
 describe('Round-trip conversion: Built-in OpenCode (binary) → Ghostty → OpenCode', () => {
   test('All built-in OpenCode themes extract and round-trip correctly', async () => {
+    // Record initial state BEFORE creating themes
+    const initialGhosttyThemes = existsSync(TEST_GHOSTTY_DIR) ? readdirSync(TEST_GHOSTTY_DIR) : [];
+    const initialOpenCodeThemes = existsSync(OPENCODE_THEMES_DIR) ? readdirSync(OPENCODE_THEMES_DIR) : [];
+
     // Setup
     const createdGhosttyThemes: string[] = [];
     const createdOpenCodeThemes: string[] = [];
@@ -202,20 +206,30 @@ describe('Round-trip conversion: Built-in OpenCode (binary) → Ghostty → Open
       }
     }
 
-    // Cleanup
-    for (const themePath of createdGhosttyThemes) {
-      try {
-        if (existsSync(themePath)) rmSync(themePath);
-      } catch (err) {
-        console.error(`Failed to clean up ${themePath}:`, err);
+    // Cleanup - only delete themes that WEREN'T there before
+    if (existsSync(TEST_GHOSTTY_DIR)) {
+      const currentGhosttyThemes = readdirSync(TEST_GHOSTTY_DIR);
+      for (const theme of currentGhosttyThemes) {
+        if (!initialGhosttyThemes.includes(theme)) {
+          try {
+            rmSync(join(TEST_GHOSTTY_DIR, theme));
+          } catch (err) {
+            console.error(`Failed to clean up Ghostty theme ${theme}:`, err);
+          }
+        }
       }
     }
 
-    for (const themePath of createdOpenCodeThemes) {
-      try {
-        if (existsSync(themePath)) rmSync(themePath);
-      } catch (err) {
-        console.error(`Failed to clean up ${themePath}:`, err);
+    if (existsSync(OPENCODE_THEMES_DIR)) {
+      const currentOpenCodeThemes = readdirSync(OPENCODE_THEMES_DIR);
+      for (const theme of currentOpenCodeThemes) {
+        if (!initialOpenCodeThemes.includes(theme)) {
+          try {
+            rmSync(join(OPENCODE_THEMES_DIR, theme));
+          } catch (err) {
+            console.error(`Failed to clean up OpenCode theme ${theme}:`, err);
+          }
+        }
       }
     }
 
