@@ -16,12 +16,8 @@ jobs:
           # macOS
           - os: macos
             arch: arm64
-            runner: macos-14
+            runner: macos-latest
             target: darwin-arm64
-          - os: macos
-            arch: x64
-            runner: macos-15-large
-            target: darwin-x64
           
           # Linux
           - os: linux
@@ -85,7 +81,6 @@ jobs:
         with:
           files: |
             ./artifacts/ghostpencode-macos-arm64/ghostpencode-macos-arm64
-            ./artifacts/ghostpencode-macos-x64/ghostpencode-macos-x64
             ./artifacts/ghostpencode-linux-x64/ghostpencode-linux-x64
             ./artifacts/ghostpencode-linux-arm64/ghostpencode-linux-arm64
             ./artifacts/ghostpencode-windows-x64/ghostpencode-windows-x64.exe
