@@ -1,5 +1,11 @@
 # ghostpencode
 
+[![npm version](https://img.shields.io/npm/v/ghostpencode.svg)](https://www.npmjs.com/package/ghostpencode)
+[![npm downloads](https://img.shields.io/npm/dm/ghostpencode.svg)](https://www.npmjs.com/package/ghostpencode)
+[![GitHub release](https://img.shields.io/github/v/release/jcbbge/ghostpencode)](https://github.com/jcbbge/ghostpencode/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform Support](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](https://github.com/jcbbge/ghostpencode)
+
 > Bi-directional theme sync between Ghostty terminal and OpenCode with image palette extraction
 
 Extract color palettes from images or sync themes between Ghostty and OpenCode with automatic naming convention conversion and instant reload.
@@ -25,43 +31,122 @@ Extract color palettes from images or sync themes between Ghostty and OpenCode w
 
 ## Prerequisites
 
-- **Bun** 1.0 or higher - [Install Bun](https://bun.sh)
 - **Ghostty** terminal - [Install Ghostty](https://ghostty.org)
 - **OpenCode** (optional) - For OpenCode sync features
-- **macOS or Linux** - Windows support planned
+- **Bun or Node.js** (optional) - Only needed for npm installation or building from source
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Reference
 
-**Option 1: Install from npm** (once published)
+| Platform | One-Click Install |
+|----------|-------------------|
+| **macOS** | `curl -fsSL https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.sh \| bash` |
+| **Linux** | `curl -fsSL https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.sh \| bash` |
+| **Windows** | `irm https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.ps1 \| iex` |
+| **Any (npm)** | `bun install -g ghostpencode` or `npm install -g ghostpencode` |
+| **Any (zero-install)** | `bunx ghostpencode --help` or `npx ghostpencode --help` |
+
+---
+
+### 🚀 Quick Install (Recommended)
+
+#### macOS / Linux
 ```bash
-bun install -g ghostpencode
-# or with npm
-npm install -g ghostpencode
+curl -fsSL https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.sh | bash
 ```
 
-**Option 2: Install from GitHub** (current method)
+#### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.ps1 | iex
+```
+
+The install script will:
+- Detect your OS and architecture
+- Offer multiple installation methods (npm, binary, or source)
+- Automatically set up everything
+- Verify the installation
+
+---
+
+### 📦 Package Managers
+
+#### npm / Bun (All platforms)
 ```bash
-# Clone and install globally
+# With Bun (recommended)
+bun install -g ghostpencode
+
+# With npm
+npm install -g ghostpencode
+
+# With pnpm
+pnpm install -g ghostpencode
+```
+
+#### Zero-Install (No installation needed)
+```bash
+# With Bun
+bunx ghostpencode --help
+
+# With npm
+npx ghostpencode --help
+```
+
+#### Homebrew (macOS)
+```bash
+brew tap jcbbge/tap
+brew install ghostpencode
+```
+
+---
+
+### 💾 Pre-compiled Binaries
+
+Download from [GitHub Releases](https://github.com/jcbbge/ghostpencode/releases/latest):
+
+#### macOS
+```bash
+# Apple Silicon (M1/M2/M3)
+curl -fsSL https://github.com/jcbbge/ghostpencode/releases/latest/download/ghostpencode-macos-arm64 -o ghostpencode
+chmod +x ghostpencode
+sudo mv ghostpencode /usr/local/bin/
+
+# Intel
+curl -fsSL https://github.com/jcbbge/ghostpencode/releases/latest/download/ghostpencode-macos-x64 -o ghostpencode
+chmod +x ghostpencode
+sudo mv ghostpencode /usr/local/bin/
+```
+
+#### Linux
+```bash
+# x64
+curl -fsSL https://github.com/jcbbge/ghostpencode/releases/latest/download/ghostpencode-linux-x64 -o ghostpencode
+chmod +x ghostpencode
+sudo mv ghostpencode /usr/local/bin/
+
+# ARM64
+curl -fsSL https://github.com/jcbbge/ghostpencode/releases/latest/download/ghostpencode-linux-arm64 -o ghostpencode
+chmod +x ghostpencode
+sudo mv ghostpencode /usr/local/bin/
+```
+
+#### Windows
+Download `ghostpencode-windows-x64.exe` from [releases](https://github.com/jcbbge/ghostpencode/releases/latest) and add to PATH.
+
+---
+
+### 🔨 Build from Source
+
+```bash
 git clone https://github.com/jcbbge/ghostpencode.git
 cd ghostpencode
 bun install
 bun link
-
-# Verify installation
-ghostpencode --help
 ```
 
-**Option 3: Use npx/bunx** (no installation)
-```bash
-bunx ghostpencode --help
-```
+---
 
-This automatically:
-- Installs the CLI globally
-- Registers the OpenCode skill at `~/.config/opencode/skill/theme-sync/`
-- Makes `ghostpencode` available system-wide
+### ✅ Verify Installation
 
 ```bash
 ghostpencode --help
@@ -78,7 +163,56 @@ Usage:
   ghostpencode extract <image> [--name <name>]      Extract from image
 ```
 
-### First Run
+**Installation automatically:**
+- Installs the CLI globally
+- Registers the OpenCode skill at `~/.config/opencode/skill/theme-sync/`
+- Makes `ghostpencode` available system-wide
+
+See [INSTALL.md](./INSTALL.md) for detailed installation instructions and troubleshooting.
+
+---
+
+## Updating
+
+### npm / Bun
+```bash
+bun update -g ghostpencode
+# or
+npm update -g ghostpencode
+```
+
+### Homebrew
+```bash
+brew upgrade ghostpencode
+```
+
+### Binary
+Re-run the install script or download the latest release from [GitHub Releases](https://github.com/jcbbge/ghostpencode/releases/latest).
+
+---
+
+## Uninstalling
+
+### npm / Bun
+```bash
+bun remove -g ghostpencode
+# or
+npm uninstall -g ghostpencode
+```
+
+### Homebrew
+```bash
+brew uninstall ghostpencode
+```
+
+### Binary
+```bash
+sudo rm /usr/local/bin/ghostpencode
+```
+
+---
+
+## First Run
 
 ```bash
 ghostpencode
@@ -463,6 +597,42 @@ This teaches the OpenCode AI assistant how to:
 The assistant knows what to do automatically.
 
 ## Troubleshooting
+
+### Installation Issues
+
+#### "command not found: ghostpencode"
+
+**Solution:** Restart your terminal or reload your shell:
+```bash
+source ~/.zshrc  # or ~/.bashrc
+```
+
+#### Permission denied (macOS/Linux)
+
+**Solution:** Use `sudo` when moving to `/usr/local/bin/`:
+```bash
+sudo mv ghostpencode /usr/local/bin/
+```
+
+#### Windows: Script execution disabled
+
+**Solution:** Enable script execution in PowerShell:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+#### "Bun is required to run ghostpencode"
+
+**Solution:** Install Bun or use a pre-compiled binary:
+```bash
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
+
+# Or download pre-compiled binary (no Bun needed)
+curl -fsSL https://raw.githubusercontent.com/jcbbge/ghostpencode/main/install.sh | bash
+```
+
+---
 
 ### Ghostty Theme Not Found
 
