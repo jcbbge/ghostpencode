@@ -1,0 +1,26 @@
+# Test files
+tests/
+*.test.ts
+TEST_REPORT.md
+
+# Development files
+.github/
+homebrew/
+examples/
+DEVELOPMENT.md
+FIXES.md
+CLAUDE.md
+
+# Build artifacts
+*.log
+.DS_Store
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Install scripts (not needed in npm package)
+install.sh
+install.ps1
+

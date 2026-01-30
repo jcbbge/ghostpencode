@@ -30,12 +30,32 @@ Extract color palettes from images or sync themes between Ghostty and OpenCode w
 - **OpenCode** (optional) - For OpenCode sync features
 - **macOS or Linux** - Windows support planned
 
-## Getting Started
+## Installation
 
-### 1. Install
+### Quick Install (Recommended)
 
+**Option 1: Install from npm** (once published)
 ```bash
 bun install -g ghostpencode
+# or with npm
+npm install -g ghostpencode
+```
+
+**Option 2: Install from GitHub** (current method)
+```bash
+# Clone and install globally
+git clone https://github.com/jcbbge/ghostpencode.git
+cd ghostpencode
+bun install
+bun link
+
+# Verify installation
+ghostpencode --help
+```
+
+**Option 3: Use npx/bunx** (no installation)
+```bash
+bunx ghostpencode --help
 ```
 
 This automatically:
@@ -43,13 +63,11 @@ This automatically:
 - Registers the OpenCode skill at `~/.config/opencode/skill/theme-sync/`
 - Makes `ghostpencode` available system-wide
 
-### 2. Verify Installation
-
 ```bash
 ghostpencode --help
 ```
 
-You should see:
+Expected output:
 ```
 ghostpencode - Theme sync for Ghostty & OpenCode
 
@@ -60,7 +78,7 @@ Usage:
   ghostpencode extract <image> [--name <name>]      Extract from image
 ```
 
-### 3. First Run
+### First Run
 
 ```bash
 ghostpencode
@@ -564,6 +582,37 @@ bun run src/cli.ts --help
 # Install globally for testing
 bun link
 ghostpencode --help
+```
+
+### Publishing to npm
+
+To enable true one-click installation (`bun install -g ghostpencode`):
+
+```bash
+# 1. Login to npm
+npm login
+
+# 2. Update version in package.json
+bun version patch  # or minor, major
+
+# 3. Build and test
+bun test
+
+# 4. Publish
+npm publish
+
+# 5. Tag release on GitHub
+git tag v$(node -p "require('./package.json').version")
+git push --tags
+```
+
+After publishing, users can install with:
+```bash
+bun install -g ghostpencode
+# or
+npm install -g ghostpencode
+# or
+bunx ghostpencode --help  # no install needed
 ```
 
 ### Project Structure

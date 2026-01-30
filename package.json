@@ -1,10 +1,10 @@
 {
   "name": "ghostpencode",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Bi-directional theme sync between Ghostty terminal and OpenCode",
   "type": "module",
   "bin": {
-    "ghostpencode": "./src/cli.ts"
+    "ghostpencode": "bin/ghostpencode.js"
   },
   "scripts": {
     "postinstall": "bun run src/install-skill.ts",
@@ -14,12 +14,26 @@
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage"
   },
-  "keywords": ["ghostty", "opencode", "theme", "terminal", "colors", "palette"],
+  "keywords": [
+    "ghostty",
+    "opencode",
+    "theme",
+    "terminal",
+    "colors",
+    "palette"
+  ],
   "author": "jcbbge",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jcbbge/ghostpencode.git"
+    "url": "git+https://github.com/jcbbge/ghostpencode.git"
+  },
+  "homepage": "https://github.com/jcbbge/ghostpencode#readme",
+  "bugs": {
+    "url": "https://github.com/jcbbge/ghostpencode/issues"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
   },
   "devDependencies": {
     "@types/bun": "^1.3.6"

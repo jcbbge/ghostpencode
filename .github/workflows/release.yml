@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # macOS
+          - os: macos
+            arch: arm64
+            runner: macos-14
+            target: darwin-arm64
+          - os: macos
+            arch: x64
+            runner: macos-13
+            target: darwin-x64
+          
+          # Linux
+          - os: linux
+            arch: x64
+            runner: ubuntu-latest
+            target: linux-x64
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            target: linux-arm64
+          
+          # Windows
+          - os: windows
+            arch: x64
+            runner: windows-latest
+            target: windows-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run tests
+        run: bun test
+
+      - name: Build binary
+        run: |
+          bun build --compile --minify --sourcemap ./src/cli.ts --outfile ghostpencode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghostpencode-${{ matrix.os }}-${{ matrix.arch }}
+          path: ghostpencode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure
+        run: ls -R ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/ghostpencode-macos-arm64/ghostpencode-macos-arm64
+            ./artifacts/ghostpencode-macos-x64/ghostpencode-macos-x64
+            ./artifacts/ghostpencode-linux-x64/ghostpencode-linux-x64
+            ./artifacts/ghostpencode-linux-arm64/ghostpencode-linux-arm64
+            ./artifacts/ghostpencode-windows-x64/ghostpencode-windows-x64.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
